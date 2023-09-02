@@ -220,14 +220,14 @@ class WebsocketSignaling:
         # }
 
         print("trying to connect to signaling server via websocket")
+        websocket.enableTrace(True)
         self._websocket = websocket.WebSocketApp(
             str(self._host),
-            on_open=on_open,
-            on_message=on_message,
-            on_error=on_error,
-            on_close=on_close,
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close,
         )
-
         # self._websocket = await websockets.connect(
         #     ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
         #     # extra_headers=headers,

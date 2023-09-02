@@ -219,7 +219,7 @@ class WebsocketSignaling:
         # }
 
         print("trying to connect to signaling server via websocket")
-        self._websocket = await websockets.client.connect(
+        self._websocket = await websockets.connect(
             ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
             # extra_headers=headers,
             origin=None,

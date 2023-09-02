@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiortc"
-description = "A forked implementation of WebRTC and ORTC"
+description = "A forked implementation of WebRTC and ORTC for local testing"
 readme = "README.rst"
 requires-python = ">=3.7"
 license = { text = "BSD-3-Clause" }

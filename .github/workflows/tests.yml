@@ -94,18 +94,19 @@ jobs:
         include:
           - os: macos-latest
             arch: arm64
-          - os: macos-latest
-            arch: x86_64
-          - os: ubuntu-latest
-            arch: aarch64
-          - os: ubuntu-latest
-            arch: i686
-          - os: ubuntu-latest
-            arch: x86_64
-          - os: windows-latest
-            arch: AMD64
-          - os: windows-latest
-            arch: x86
+          # TODO: Enable when after testing on macOS arm64
+          # - os: macos-latest
+          #   arch: x86_64
+          # - os: ubuntu-latest
+          #   arch: aarch64
+          # - os: ubuntu-latest
+          #   arch: i686
+          # - os: ubuntu-latest
+          #   arch: x86_64
+          # - os: windows-latest
+          #   arch: AMD64
+          # - os: windows-latest
+          #   arch: x86
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -121,7 +122,7 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: python scripts\fetch-vendor.py C:\cibw\vendor
           CIBW_ENVIRONMENT: CFLAGS=-I/tmp/vendor/include LDFLAGS=-L/tmp/vendor/lib
           CIBW_ENVIRONMENT_WINDOWS: INCLUDE=C:\\cibw\\vendor\\include LIB=C:\\cibw\\vendor\\lib
-          CIBW_SKIP: cp36-* pp36-* *-musllinux*
+          CIBW_SKIP: cp36-* pp36-* *-musllinux* cp37-* pp37-* cp38-* pp38-* cp39-* pp39-* cp310-* pp310-*
         run: |
           pip install cibuildwheel
           cibuildwheel --output-dir dist

@@ -194,23 +194,36 @@ class WebsocketSignaling:
         self._port = port
         self._websocket = None
 
-    async def connect(self):
-        headers = {
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Cache-Control": "no-cache",
-            "Connection": "Upgrade",
-            "Host": "127.0.0.1",
-            "Origin": "null",
-            "Pragma": "no-cache",
-            "Upgrade": "websocket",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-        }
+    # def on_message(ws, message):
+    #     print(message)
 
-        self._websocket = await websockets.connect(
+    # def on_error(ws, error):
+    #     print(error)
+
+    # def on_close(ws, close_status_code, close_msg):
+    #     print("### closed ###")
+
+    # def on_open(ws):
+    #     print("Opened connection")
+
+    async def connect(self):
+        # headers = {
+        #     "Accept-Encoding": "gzip, deflate, br",
+        #     "Accept-Language": "en-US,en;q=0.9",
+        #     "Cache-Control": "no-cache",
+        #     "Connection": "Upgrade",
+        #     "Host": "127.0.0.1",
+        #     "Pragma": "no-cache",
+        #     "Upgrade": "websocket",
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
+        # }
+
+        print("trying to connect to signaling server via websocket")
+        self._websocket = await websockets.client.connect(
             ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
-            extra_headers=headers,
-            origin="*",
+            # extra_headers=headers,
+            origin=None,
+            user_agent_header="Python/x.y.z websockets/X.Y",
             uri=str(self._host),
         )
         print("connected to signaling server via websocket")

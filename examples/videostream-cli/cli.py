@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 import math
+import boto3
 
 import cv2
 import numpy
@@ -14,6 +15,7 @@ from aiortc import (
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder
 from aiortc.contrib.signaling import BYE, add_signaling_arguments, create_signaling
 from av import VideoFrame
+from aiortc.rtcconfiguration import RTCIceServer, RTCConfiguration
 
 
 class FlagVideoStreamTrack(VideoStreamTrack):
@@ -76,6 +78,59 @@ class FlagVideoStreamTrack(VideoStreamTrack):
         return data_bgr
 
 
+# function to use boto3 to construct the RTCPeerConfiguration object
+def getRTCPeerConfiguration():
+    client = boto3.client("kinesisvideo")
+
+    # get the channel ARN
+    channelARNResponse = client.describe_signaling_channel(
+        ChannelName="my_test_channel"
+    )
+    channelARN = channelARNResponse["ChannelInfo"]["ChannelARN"]
+
+    # get the signalling channel endpoint
+    response = client.get_signaling_channel_endpoint(
+        ChannelARN=channelARN,
+        SingleMasterChannelEndpointConfiguration={
+            "Protocols": [
+                "WSS",
+                "HTTPS",
+            ],  # WSS | HTTPS | WEBRTC (used for media capture which we are not doing right now)
+            "Role": "MASTER",
+        },
+    )
+    # reduce ResourceEndpointList to a dictionary with the key being the Protocol and the value being the ResourceEndpoint
+    endpoints = {
+        item["Protocol"]: item["ResourceEndpoint"]
+        for item in response["ResourceEndpointList"]
+    }
+
+    # get the ice server configuration
+    client = boto3.client("kinesis-video-signaling", endpoint_url=endpoints["HTTPS"])
+    response = client.get_ice_server_config(
+        ChannelARN=channelARN,
+    )
+
+    #  construct the RTCConfiguration object
+    iceServerList = []
+    for iceServer in response["IceServerList"]:
+        iceServerList.append(
+            RTCIceServer(
+                urls=iceServer["Uris"],
+                username=iceServer["Username"],
+                credential=iceServer["Password"],
+            )
+        )
+    # add STUN server (could disable in future but trying everything first)
+    iceServerList.append(
+        RTCIceServer(
+            urls=["stun:stun.kinesisvideo.eu-west-2.amazonaws.com:443"],
+        )
+    )
+
+    return endpoints, RTCConfiguration(iceServerList)
+
+
 async def run(pc, player, recorder, signaling, role):
     def add_tracks():
         if player and player.audio:
@@ -92,18 +147,26 @@ async def run(pc, player, recorder, signaling, role):
         recorder.addTrack(track)
 
     # connect signaling
+    print("Connecting to signaling server")
     await signaling.connect()
+    print("Connected to signaling server")
 
     if role == "offer":
         # send offer
         add_tracks()
         await pc.setLocalDescription(await pc.createOffer())
+        print("Sending offer")
+        print("XXXXXXXXXXXX")
+        # print(pc.localDescription)
+        print("XXXXXXXXXXXX")
         await signaling.send(pc.localDescription)
+        print("Offer sent")
 
     # consume signaling
     while True:
+        print("Waiting for event")
         obj = await signaling.receive()
-
+        print("Received event")
         if isinstance(obj, RTCSessionDescription):
             await pc.setRemoteDescription(obj)
             await recorder.start()
@@ -132,9 +195,19 @@ if __name__ == "__main__":
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    # get the endpoints and configuration, update args.signaling_host
+    endpoints, configuration = getRTCPeerConfiguration()
+    args.signaling_host = endpoints["WSS"]
+    args.signaling_port = 443
+    args.signaling = "websocket"
+
+    print(endpoints)
+
     # create signaling and peer connection
+    print("Creating signaling and peer connection")
+    print(args)
     signaling = create_signaling(args)
-    pc = RTCPeerConnection()
+    pc = RTCPeerConnection(configuration)
 
     # create media source
     if args.play_from:

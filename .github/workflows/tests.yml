@@ -3,7 +3,6 @@ name: tests
 on: [push, pull_request]
 
 jobs:
-
   docs:
     runs-on: ubuntu-latest
     steps:
@@ -13,7 +12,7 @@ jobs:
           python-version: 3.7
       - name: Build documentation
         env:
-          READTHEDOCS: 'True'
+          READTHEDOCS: "True"
         run: |
           pip install . -r requirements/doc.txt
           make -C docs html SPHINXOPTS=-W
@@ -39,11 +38,11 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python:
-          - '3.11'
-          - '3.10'
-          - '3.9'
-          - '3.8'
-          - '3.7'
+          - "3.11"
+          - "3.10"
+          - "3.9"
+          - "3.8"
+          - "3.7"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -133,18 +132,18 @@ jobs:
           name: dist
           path: dist/
 
-  publish:
-    runs-on: ubuntu-latest
-    needs: [lint, test, package-source, package-wheel]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-        with:
-          name: dist
-          path: dist/
-      - name: Publish to PyPI
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
+  # publish:
+  #   runs-on: ubuntu-latest
+  #   needs: [lint, test, package-source, package-wheel]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/download-artifact@v3
+  #       with:
+  #         name: dist
+  #         path: dist/
+  #     - name: Publish to PyPI
+  #       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+  #       uses: pypa/gh-action-pypi-publish@master
+  #       with:
+  #         user: __token__
+  #         password: ${{ secrets.PYPI_TOKEN }}

@@ -3,8 +3,9 @@ import json
 import logging
 import os
 import sys
-import websockets
-import ssl
+import websocket
+
+# import ssl
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -194,17 +195,17 @@ class WebsocketSignaling:
         self._port = port
         self._websocket = None
 
-    # def on_message(ws, message):
-    #     print(message)
+    def on_message(ws, message):
+        print(message)
 
-    # def on_error(ws, error):
-    #     print(error)
+    def on_error(ws, error):
+        print(error)
 
-    # def on_close(ws, close_status_code, close_msg):
-    #     print("### closed ###")
+    def on_close(ws, close_status_code, close_msg):
+        print("### closed ###")
 
-    # def on_open(ws):
-    #     print("Opened connection")
+    def on_open(ws):
+        print("Opened connection")
 
     async def connect(self):
         # headers = {
@@ -219,13 +220,21 @@ class WebsocketSignaling:
         # }
 
         print("trying to connect to signaling server via websocket")
-        self._websocket = await websockets.connect(
-            ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
-            # extra_headers=headers,
-            origin=None,
-            user_agent_header="Python/x.y.z websockets/X.Y",
-            uri=str(self._host),
+        self._websocket = websocket.WebSocketApp(
+            str(self._host),
+            on_open=on_open,
+            on_message=on_message,
+            on_error=on_error,
+            on_close=on_close,
         )
+
+        # self._websocket = await websockets.connect(
+        #     ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
+        #     # extra_headers=headers,
+        #     origin=None,
+        #     user_agent_header="Python/x.y.z websockets/X.Y",
+        #     uri=str(self._host),
+        # )
         print("connected to signaling server via websocket")
 
     async def close(self):

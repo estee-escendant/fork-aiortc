@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import websockets
+import ssl
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -194,8 +195,23 @@ class WebsocketSignaling:
         self._websocket = None
 
     async def connect(self):
+        headers = {
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Connection": "Upgrade",
+            "Host": "127.0.0.1",
+            "Origin": "null",
+            "Pragma": "no-cache",
+            "Upgrade": "websocket",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
+        }
+
         self._websocket = await websockets.connect(
-            str(self._host) + ":" + str(self._port)
+            ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
+            extra_headers=headers,
+            origin="*",
+            uri=str(self._host),
         )
         print("connected to signaling server via websocket")
 

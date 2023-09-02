@@ -4,8 +4,7 @@ import logging
 import os
 import sys
 import websocket
-
-# import ssl
+import ssl
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -195,17 +194,17 @@ class WebsocketSignaling:
         self._port = port
         self._websocket = None
 
-    def on_message(ws, message):
-        print(message)
+    # def on_message(ws, message):
+    #     print(message)
 
-    def on_error(ws, error):
-        print(error)
+    # def on_error(ws, error):
+    #     print(error)
 
-    def on_close(ws, close_status_code, close_msg):
-        print("### closed ###")
+    # def on_close(ws, close_status_code, close_msg):
+    #     print("### closed ###")
 
-    def on_open(ws):
-        print("Opened connection")
+    # def on_open(ws):
+    #     print("Opened connection")
 
     async def connect(self):
         # headers = {
@@ -221,20 +220,21 @@ class WebsocketSignaling:
 
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
-        self._websocket = websocket.WebSocketApp(
-            str(self._host),
-            on_open=self.on_open,
-            on_message=self.on_message,
-            on_error=self.on_error,
-            on_close=self.on_close,
-        )
-        # self._websocket = await websockets.connect(
-        #     ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
-        #     # extra_headers=headers,
-        #     origin=None,
-        #     user_agent_header="Python/x.y.z websockets/X.Y",
-        #     uri=str(self._host),
+        # self._websocket = websocket.WebSocketApp(
+        #     str(self._host),
+        #     on_open=self.on_open,
+        #     on_message=self.on_message,
+        #     on_error=self.on_error,
+        #     on_close=self.on_close,
         # )
+        self._websocket = await websocket.create_connection(
+            # ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
+            # # extra_headers=headers,
+            # origin=None,
+            # user_agent_header="Python/x.y.z websockets/X.Y",
+            url=str(self._host),
+            header=["User-Agent: MyProgram"],
+        )
         print("connected to signaling server via websocket")
 
     async def close(self):

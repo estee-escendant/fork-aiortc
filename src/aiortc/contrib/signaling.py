@@ -4,7 +4,9 @@ import logging
 import os
 import sys
 import websocket
-import ssl
+import boto3
+from botocore.awsrequest import AWSRequest
+from botocore.auth import SigV4Auth
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -207,6 +209,21 @@ class WebsocketSignaling:
     #     print("Opened connection")
 
     async def connect(self):
+        # Prepare a GetCallerIdentity request.
+        request = AWSRequest(
+            method="POST",
+            url="https://sts.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15",
+            headers={"Host": "sts.amazonaws.com"},
+        )
+
+        # Sign the request
+        SigV4Auth(boto3.Session().get_credentials(), "sts", "us-east-1").add_auth(
+            request
+        )
+
+        # Get the dict of signed headers
+        signed_headers = request.headers
+
         # headers = {
         #     "Accept-Encoding": "gzip, deflate, br",
         #     "Accept-Language": "en-US,en;q=0.9",
@@ -220,20 +237,15 @@ class WebsocketSignaling:
 
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
-        # self._websocket = websocket.WebSocketApp(
-        #     str(self._host),
-        #     on_open=self.on_open,
-        #     on_message=self.on_message,
-        #     on_error=self.on_error,
-        #     on_close=self.on_close,
-        # )
+        print(signed_headers)
+
         self._websocket = await websocket.create_connection(
             # ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
             # # extra_headers=headers,
             # origin=None,
             # user_agent_header="Python/x.y.z websockets/X.Y",
             url=str(self._host),
-            header=["User-Agent: MyProgram"],
+            header=signed_headers,
         )
         print("connected to signaling server via websocket")
 

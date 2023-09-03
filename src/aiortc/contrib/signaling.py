@@ -47,8 +47,8 @@ def getSignedURL(method, service, region, host, endpoint):
     # -----------------------------------------------------------------------
     # Step 3. Create the canonical URI and canonical headers for the request.
     # -----------------------------------------------------------------------
-    canonical_uri = "/start-network-analyzer-stream"
-    configuration_name = "My_Network_Analyzer_Config"
+    canonical_uri = ""  # "/start-network-analyzer-stream"
+    # configuration_name = "My_Network_Analyzer_Config"
 
     canonical_headers = "host:" + host + "\n"
     signed_headers = "host"
@@ -84,6 +84,10 @@ def getSignedURL(method, service, region, host, endpoint):
         access_key + "/" + credential_scope, safe="-_.~"
     )
 
+    canonical_querystring += "&X-Amz-ChannelARN=" + urllib.parse.quote(
+        "arn:aws:kinesisvideo:eu-west-2:704753930477:channel/my_test_channel/1691592101264"
+    )
+
     canonical_querystring += "&X-Amz-Date=" + amz_date
     canonical_querystring += "&X-Amz-Expires=300"
 
@@ -94,7 +98,7 @@ def getSignedURL(method, service, region, host, endpoint):
         ).replace("=", "%253D")
 
     canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers
-    canonical_querystring += "&configuration-name=" + configuration_name
+    # canonical_querystring += "&configuration-name=" + configuration_name
 
     # ----------------------------------------------------------------------
     # Step 6. Create a hash of the payload.
@@ -345,7 +349,7 @@ class WebsocketSignaling:
 
         print(url)
         url = getSignedURL(
-            "POST",
+            "GET",
             service,
             region,
             "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",

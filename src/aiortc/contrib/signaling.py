@@ -8,13 +8,13 @@ import websocket
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 
-import base64, datetime, hashlib, hmac, urllib.parse
+import datetime, hashlib, hmac, urllib.parse
 
 logger = logging.getLogger(__name__)
 BYE = object()
 
-def getSignedURL(method, service, region, host, endpoint):
 
+def getSignedURL(method, service, region, host, endpoint):
     def sign(key, msg):
         return hmac.new(key, msg.encode("utf-8"), hashlib.sha256).digest()
 
@@ -26,7 +26,7 @@ def getSignedURL(method, service, region, host, endpoint):
         return kSigning
 
     # ------------------------------------------------------------------
-    # Step 2. Define the variables required for the request URL. Replace 
+    # Step 2. Define the variables required for the request URL. Replace
     # values for the variables, such as region, with your own values.
     # ------------------------------------------------------------------
     method = method
@@ -37,12 +37,12 @@ def getSignedURL(method, service, region, host, endpoint):
     # host = "api.iotwireless." + region + ".amazonaws.com"
     endpoint = endpoint
 
-    # Create a date for headers and the credential string. 
+    # Create a date for headers and the credential string.
     t = datetime.datetime.utcnow()
     amz_date = t.strftime("%Y%m%dT%H%M%SZ")
 
     # For date stamp, the date without time is used in credential scope.
-    datestamp = t.strftime("%Y%m%d") 
+    datestamp = t.strftime("%Y%m%d")
 
     # -----------------------------------------------------------------------
     # Step 3. Create the canonical URI and canonical headers for the request.
@@ -56,7 +56,7 @@ def getSignedURL(method, service, region, host, endpoint):
     credential_scope = datestamp + "/" + region + "/" + service + "/" + "aws4_request"
 
     # -----------------------------------------------------------------------
-    # Step 4. Read the  credentials that are required for the request 
+    # Step 4. Read the  credentials that are required for the request
     # from environment variables or configuration file.
     # -----------------------------------------------------------------------
 
@@ -65,32 +65,34 @@ def getSignedURL(method, service, region, host, endpoint):
     access_key = os.environ.get("AWS_ACCESS_KEY_ID")
     secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
     token = os.environ.get("AWS_SESSION_TOKEN")
-        
+
     if access_key is None or secret_key is None:
         print("No access key is available.")
         sys.exit()
-        
+
     if access_key.startswith("ASIA") and token is None:
         print("Detected temporary credentials. You must specify a token.")
         sys.exit()
 
-    # ----------------------------------------------------------------------
-    # Step 5. Create the canonical query string. Query string values must be 
-    # URI-encoded and sorted by name. Query headers must in alphabetical order.
-    # ----------------------------------------------------------------------
-        canonical_querystring  = "X-Amz-Algorithm=" + algorithm
+        # ----------------------------------------------------------------------
+        # Step 5. Create the canonical query string. Query string values must be
+        # URI-encoded and sorted by name. Query headers must in alphabetical order.
+        # ----------------------------------------------------------------------
+        canonical_querystring = "X-Amz-Algorithm=" + algorithm
 
-        canonical_querystring += "&X-Amz-Credential=" + \ 
-        urllib.parse.quote(access_key + "/" + credential_scope, safe="-_.~")
+        canonical_querystring += "&X-Amz-Credential=" + urllib.parse.quote(
+            access_key + "/" + credential_scope, safe="-_.~"
+        )
 
         canonical_querystring += "&X-Amz-Date=" + amz_date
         canonical_querystring += "&X-Amz-Expires=300"
 
         if access_key.startswith("ASIA"):
             # percent encode the token and double encode "="
-            canonical_querystring += "&X-Amz-Security-Token=" + \ 
-            urllib.parse.quote(token, safe="-_.~").replace("=", "%253D")
-        
+            canonical_querystring += "&X-Amz-Security-Token=" + urllib.parse.quote(
+                token, safe="-_.~"
+            ).replace("=", "%253D")
+
         canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers
         canonical_querystring += "&configuration-name=" + configuration_name
 
@@ -103,32 +105,52 @@ def getSignedURL(method, service, region, host, endpoint):
     # Step 7. Combine the elements, which includes the query string, the
     # headers, and the payload hash, to form the canonical request.
     # ------------------------------------------------------------------
-    canonical_request = method + "\n" + canonical_uri + "\n" + canonical_querystring \ 
-    + "\n" + canonical_headers + "\n" + signed_headers + "\n" + payload_hash
+    canonical_request = (
+        method
+        + "\n"
+        + canonical_uri
+        + "\n"
+        + canonical_querystring
+        + "\n"
+        + canonical_headers
+        + "\n"
+        + signed_headers
+        + "\n"
+        + payload_hash
+    )
 
     # ----------------------------------------------------------------------
     # Step 8. Create the metadata string to store the information required to
     # calculate the signature in the following step.
     # ----------------------------------------------------------------------
-    string_to_sign = algorithm + "\n" + amz_date + "\n" + \ 
-    credential_scope + "\n" + hashlib.sha256(canonical_request.encode("utf-8")).hexdigest()
+    string_to_sign = (
+        algorithm
+        + "\n"
+        + amz_date
+        + "\n"
+        + credential_scope
+        + "\n"
+        + hashlib.sha256(canonical_request.encode("utf-8")).hexdigest()
+    )
 
     # ----------------------------------------------------------------------
     # Step 9. Calculate the signature by using a signing key that"s obtained
-    # from your secret key. 
+    # from your secret key.
     # ----------------------------------------------------------------------
     # Create the signing key from your  secret key.
     signing_key = getSignatureKey(secret_key, datestamp, region, service)
-        
+
     # Sign the string_to_sign using the signing key.
-    signature = hmac.new(signing_key, (string_to_sign).encode("utf-8"), hashlib.sha256).hexdigest()
+    signature = hmac.new(
+        signing_key, (string_to_sign).encode("utf-8"), hashlib.sha256
+    ).hexdigest()
 
     # ----------------------------------------------------------------------
     # Step 10. Create the request URL using the calculated signature and by
     # combining it with the canonical URI and the query string.
     # ----------------------------------------------------------------------
     canonical_querystring += "&X-Amz-Signature=" + signature
-        
+
     request_url = endpoint + canonical_uri + "?" + canonical_querystring
     return request_url
 

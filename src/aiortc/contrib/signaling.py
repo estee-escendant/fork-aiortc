@@ -74,27 +74,27 @@ def getSignedURL(method, service, region, host, endpoint):
         print("Detected temporary credentials. You must specify a token.")
         sys.exit()
 
-        # ----------------------------------------------------------------------
-        # Step 5. Create the canonical query string. Query string values must be
-        # URI-encoded and sorted by name. Query headers must in alphabetical order.
-        # ----------------------------------------------------------------------
-        canonical_querystring = "X-Amz-Algorithm=" + algorithm
+    # ----------------------------------------------------------------------
+    # Step 5. Create the canonical query string. Query string values must be
+    # URI-encoded and sorted by name. Query headers must in alphabetical order.
+    # ----------------------------------------------------------------------
+    canonical_querystring = "X-Amz-Algorithm=" + algorithm
 
-        canonical_querystring += "&X-Amz-Credential=" + urllib.parse.quote(
-            access_key + "/" + credential_scope, safe="-_.~"
-        )
+    canonical_querystring += "&X-Amz-Credential=" + urllib.parse.quote(
+        access_key + "/" + credential_scope, safe="-_.~"
+    )
 
-        canonical_querystring += "&X-Amz-Date=" + amz_date
-        canonical_querystring += "&X-Amz-Expires=300"
+    canonical_querystring += "&X-Amz-Date=" + amz_date
+    canonical_querystring += "&X-Amz-Expires=300"
 
-        if access_key.startswith("ASIA"):
-            # percent encode the token and double encode "="
-            canonical_querystring += "&X-Amz-Security-Token=" + urllib.parse.quote(
-                token, safe="-_.~"
-            ).replace("=", "%253D")
+    if access_key.startswith("ASIA"):
+        # percent encode the token and double encode "="
+        canonical_querystring += "&X-Amz-Security-Token=" + urllib.parse.quote(
+            token, safe="-_.~"
+        ).replace("=", "%253D")
 
-        canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers
-        canonical_querystring += "&configuration-name=" + configuration_name
+    canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers
+    canonical_querystring += "&configuration-name=" + configuration_name
 
     # ----------------------------------------------------------------------
     # Step 6. Create a hash of the payload.

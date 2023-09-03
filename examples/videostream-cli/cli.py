@@ -354,7 +354,7 @@ if __name__ == "__main__":
         "POST",
         service,
         region,
-        "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",
+        endpoints["WSS"].replace("wss://", ""),
         endpoints["WSS"],
     )
     args.signaling_host = url

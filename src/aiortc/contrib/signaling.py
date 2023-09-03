@@ -5,14 +5,38 @@ import os
 import sys
 import websocket
 import boto3
-from botocore.awsrequest import AWSRequest
-from botocore.auth import SigV4Auth
+from botocore import crt, awsrequest
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 
 logger = logging.getLogger(__name__)
 BYE = object()
+
+
+class SigV4ASign:
+    def __init__(self, boto3_session=boto3.Session()):
+        self.session = boto3_session
+
+    def get_headers(self, service, region, aws_request_config):
+        sigV4A = crt.auth.CrtS3SigV4AsymAuth(
+            self.session.get_credentials(), service, region
+        )
+        request = awsrequest.AWSRequest(**aws_request_config)
+        sigV4A.add_auth(request)
+        prepped = request.prepare()
+
+        return prepped.headers
+
+    def get_headers_basic(self, service, region, method, url):
+        sigV4A = crt.auth.CrtS3SigV4AsymAuth(
+            self.session.get_credentials(), service, region
+        )
+        request = awsrequest.AWSRequest(method=method, url=url)
+        sigV4A.add_auth(request)
+        prepped = request.prepare()
+
+        return prepped.headers
 
 
 def object_from_string(message_str):
@@ -196,47 +220,28 @@ class WebsocketSignaling:
         self._port = port
         self._websocket = None
 
-    # def on_message(ws, message):
-    #     print(message)
-
-    # def on_error(ws, error):
-    #     print(error)
-
-    # def on_close(ws, close_status_code, close_msg):
-    #     print("### closed ###")
-
-    # def on_open(ws):
-    #     print("Opened connection")
-
     async def connect(self):
         # Prepare a GetCallerIdentity request.
-        request = AWSRequest(
-            method="POST",
-            url="https://sts.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15",
-            headers={"Host": "sts.amazonaws.com"},
-        )
+        service = "kinesis-video-signaling"
+        region = "eu-west-2"
+        method = "GET"
+        url = str(self._host)
 
-        # Sign the request
-        SigV4Auth(boto3.Session().get_credentials(), "sts", "eu-west-2").add_auth(
-            request
-        )
+        headers = SigV4ASign().get_headers_basic(service, region, method, url)
 
-        # Get the dict of signed headers
-        signed_headers = request.headers
-
-        headers = {
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Cache-Control": "no-cache",
-            "Connection": "Upgrade",
-            "Host": "127.0.0.1",
-            "Pragma": "no-cache",
-            "Upgrade": "websocket",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-            "X-Amz-Date": signed_headers["X-Amz-Date"],
-            "X-Amz-Security-Token": signed_headers["X-Amz-Security-Token"],
-            "Authorization": signed_headers["Authorization"],
-        }
+        # headers = {
+        #     "Accept-Encoding": "gzip, deflate, br",
+        #     "Accept-Language": "en-US,en;q=0.9",
+        #     "Cache-Control": "no-cache",
+        #     "Connection": "Upgrade",
+        #     "Host": "127.0.0.1",
+        #     "Pragma": "no-cache",
+        #     "Upgrade": "websocket",
+        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
+        #     "X-Amz-Date": signed_headers["X-Amz-Date"],
+        #     "X-Amz-Security-Token": signed_headers["X-Amz-Security-Token"],
+        #     "Authorization": signed_headers["Authorization"],
+        # }
 
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
@@ -245,12 +250,8 @@ class WebsocketSignaling:
         print("+++++++++++++++++++++++++++++++")
 
         self._websocket = await websocket.create_connection(
-            # ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),
-            # # extra_headers=headers,
-            # origin=None,
-            # user_agent_header="Python/x.y.z websockets/X.Y",
             url=str(self._host),
-            header=signed_headers,
+            header=headers,
         )
         print("connected to signaling server via websocket")
 

@@ -194,7 +194,7 @@ class WebsocketSignaling:
         self._websocket = None
 
     async def connect(self):
-        headers = {"host": str(self._host).replace("wss://", "")}
+        # headers = {"host": str(self._host).replace("wss://", "")}
 
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
@@ -202,7 +202,7 @@ class WebsocketSignaling:
 
         self._websocket = await websocket.create_connection(
             url=str(self._host),
-            header=headers,
+            # header=headers,
         )
         print("connected to signaling server via websocket")
 

@@ -200,7 +200,7 @@ class WebsocketSignaling:
 
         self._websocket = await websocket.create_connection(
             url=str(self._host),
-            host=str(self._host).replace("wss://", ""),
+            # host=str(self._host).replace("wss://", ""),
         )
         print("connected to signaling server via websocket")
 

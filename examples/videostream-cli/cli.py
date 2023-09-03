@@ -100,6 +100,7 @@ def getSignedURL(method, service, region, host, endpoint):
 
     # Host and endpoint information.
     # host = "api.iotwireless." + region + ".amazonaws.com"
+    host = host
     endpoint = endpoint
 
     # Create a date for headers and the credential string.
@@ -112,7 +113,7 @@ def getSignedURL(method, service, region, host, endpoint):
     # -----------------------------------------------------------------------
     # Step 3. Create the canonical URI and canonical headers for the request.
     # -----------------------------------------------------------------------
-    canonical_uri = ""  # "/start-network-analyzer-stream"
+    canonical_uri = "/"  # "/start-network-analyzer-stream"
     # configuration_name = "My_Network_Analyzer_Config"
 
     canonical_headers = "host:" + host + "\n"
@@ -150,7 +151,8 @@ def getSignedURL(method, service, region, host, endpoint):
     )
 
     canonical_querystring += "&X-Amz-ChannelARN=" + urllib.parse.quote(
-        "arn:aws:kinesisvideo:eu-west-2:704753930477:channel/my_test_channel/1691592101264"
+        "arn:aws:kinesisvideo:eu-west-2:704753930477:channel/my_test_channel/1691592101264",
+        safe="-_.~",
     )
 
     canonical_querystring += "&X-Amz-Date=" + amz_date
@@ -206,7 +208,7 @@ def getSignedURL(method, service, region, host, endpoint):
     # Step 9. Calculate the signature by using a signing key that"s obtained
     # from your secret key.
     # ----------------------------------------------------------------------
-    # Create the signing key from your  secret key.
+    # Create the signing key from your secret key.
     signing_key = getSignatureKey(secret_key, datestamp, region, service)
 
     # Sign the string_to_sign using the signing key.
@@ -345,11 +347,11 @@ if __name__ == "__main__":
     endpoints, configuration = getRTCPeerConfiguration()
 
     # Prepare a GetCallerIdentity request.
-    service = "kinesis-video-signaling"
+    service = "kinesisvideo"
     region = "eu-west-2"
 
     url = getSignedURL(
-        "GET",
+        "POST",
         service,
         region,
         "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",
@@ -362,7 +364,6 @@ if __name__ == "__main__":
 
     # create signaling and peer connection
     print("Creating signaling and peer connection")
-    print(args)
     signaling = create_signaling(args)
     pc = RTCPeerConnection(configuration)
 

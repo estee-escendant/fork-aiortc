@@ -224,20 +224,25 @@ class WebsocketSignaling:
         # Get the dict of signed headers
         signed_headers = request.headers
 
-        # headers = {
-        #     "Accept-Encoding": "gzip, deflate, br",
-        #     "Accept-Language": "en-US,en;q=0.9",
-        #     "Cache-Control": "no-cache",
-        #     "Connection": "Upgrade",
-        #     "Host": "127.0.0.1",
-        #     "Pragma": "no-cache",
-        #     "Upgrade": "websocket",
-        #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
-        # }
+        headers = {
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Connection": "Upgrade",
+            "Host": "127.0.0.1",
+            "Pragma": "no-cache",
+            "Upgrade": "websocket",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36",
+            "X-Amz-Date": signed_headers["X-Amz-Date"],
+            "X-Amz-Security-Token": signed_headers["X-Amz-Security-Token"],
+            "Authorization": signed_headers["Authorization"],
+        }
 
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
-        print(signed_headers)
+        print("+++++++++++++++++++++++++++++++")
+        print(headers)
+        print("+++++++++++++++++++++++++++++++")
 
         self._websocket = await websocket.create_connection(
             # ssl=ssl.SSLContext(ssl.PROTOCOL_TLS),

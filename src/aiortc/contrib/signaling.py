@@ -8,7 +8,7 @@ import websocket
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 
-import generatepresignedurl
+from generatepresignedurl import getSignedURL
 
 logger = logging.getLogger(__name__)
 BYE = object()
@@ -202,9 +202,7 @@ class WebsocketSignaling:
         url = str(self._host)
         headers = {"Content-Type": "application/x-amz-json-1.1"}
 
-        url = generatepresignedurl.getSignedURL(
-            "GET", service, region, "127.0.0.1", url
-        )
+        url = getSignedURL("GET", service, region, "127.0.0.1", url)
         # headers = {
         #     "Accept-Encoding": "gzip, deflate, br",
         #     "Accept-Language": "en-US,en;q=0.9",

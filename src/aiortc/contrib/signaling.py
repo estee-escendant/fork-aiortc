@@ -4,39 +4,14 @@ import logging
 import os
 import sys
 import websocket
-import boto3
-from botocore.auth import SigV4Auth
-from botocore.awsrequest import AWSRequest
-import requests
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 
+import generatepresignedurl
+
 logger = logging.getLogger(__name__)
 BYE = object()
-
-session = boto3.Session()
-credentials = session.get_credentials()
-creds = credentials.get_frozen_credentials()
-
-
-def signed_request(
-    method,
-    url,
-    data=None,
-    params=None,
-    headers=None,
-    service=None,
-    region="eu-west-2",
-):
-    request = AWSRequest(
-        method=method, url=url, data=data, params=params, headers=headers
-    )
-    # "service_name" is generally "execute-api" for signing API Gateway requests
-    SigV4Auth(creds, service, region).add_auth(request)
-    return requests.request(
-        method=method, url=url, headers=dict(request.headers), data=data
-    )
 
 
 def object_from_string(message_str):
@@ -224,10 +199,12 @@ class WebsocketSignaling:
         # Prepare a GetCallerIdentity request.
         service = "kinesis-video-signaling"
         region = "eu-west-2"
-        data = {}
         url = str(self._host)
         headers = {"Content-Type": "application/x-amz-json-1.1"}
 
+        url = generatepresignedurl.getSignedURL(
+            "GET", service, region, "127.0.0.1", url
+        )
         # headers = {
         #     "Accept-Encoding": "gzip, deflate, br",
         #     "Accept-Language": "en-US,en;q=0.9",
@@ -248,17 +225,9 @@ class WebsocketSignaling:
         print(headers)
         print("+++++++++++++++++++++++++++++++")
 
-        # self._websocket = await websocket.create_connection(
-        #     url=str(self._host),
-        #     header=headers,
-        # )
-        self._websocket = await signed_request(
-            method="POST",
-            url=url,
-            data=data,
-            headers=headers,
-            service=service,
-            region=region,
+        self._websocket = await websocket.create_connection(
+            url=str(self._host),
+            header=headers,
         )
         print("connected to signaling server via websocket")
 

@@ -5,7 +5,9 @@ import os
 import sys
 import websocket
 import boto3
-from botocore import crt, awsrequest
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
+import requests
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -13,30 +15,28 @@ from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 logger = logging.getLogger(__name__)
 BYE = object()
 
+session = boto3.Session()
+credentials = session.get_credentials()
+creds = credentials.get_frozen_credentials()
 
-class SigV4ASign:
-    def __init__(self, boto3_session=boto3.Session()):
-        self.session = boto3_session
 
-    def get_headers(self, service, region, aws_request_config):
-        sigV4A = crt.auth.CrtS3SigV4AsymAuth(
-            self.session.get_credentials(), service, region
-        )
-        request = awsrequest.AWSRequest(**aws_request_config)
-        sigV4A.add_auth(request)
-        prepped = request.prepare()
-
-        return prepped.headers
-
-    def get_headers_basic(self, service, region, method, url):
-        sigV4A = crt.auth.CrtS3SigV4AsymAuth(
-            self.session.get_credentials(), service, region
-        )
-        request = awsrequest.AWSRequest(method=method, url=url)
-        sigV4A.add_auth(request)
-        prepped = request.prepare()
-
-        return prepped.headers
+def signed_request(
+    method,
+    url,
+    data=None,
+    params=None,
+    headers=None,
+    service=None,
+    region="eu-west-2",
+):
+    request = AWSRequest(
+        method=method, url=url, data=data, params=params, headers=headers
+    )
+    # "service_name" is generally "execute-api" for signing API Gateway requests
+    SigV4Auth(creds, service, region).add_auth(request)
+    return requests.request(
+        method=method, url=url, headers=dict(request.headers), data=data
+    )
 
 
 def object_from_string(message_str):
@@ -224,10 +224,9 @@ class WebsocketSignaling:
         # Prepare a GetCallerIdentity request.
         service = "kinesis-video-signaling"
         region = "eu-west-2"
-        method = "GET"
+        data = {}
         url = str(self._host)
-
-        headers = SigV4ASign().get_headers_basic(service, region, method, url)
+        headers = {"Content-Type": "application/x-amz-json-1.1"}
 
         # headers = {
         #     "Accept-Encoding": "gzip, deflate, br",
@@ -249,9 +248,17 @@ class WebsocketSignaling:
         print(headers)
         print("+++++++++++++++++++++++++++++++")
 
-        self._websocket = await websocket.create_connection(
-            url=str(self._host),
-            header=headers,
+        # self._websocket = await websocket.create_connection(
+        #     url=str(self._host),
+        #     header=headers,
+        # )
+        self._websocket = await signed_request(
+            method="POST",
+            url=url,
+            data=data,
+            headers=headers,
+            service=service,
+            region=region,
         )
         print("connected to signaling server via websocket")
 

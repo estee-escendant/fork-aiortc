@@ -343,7 +343,14 @@ class WebsocketSignaling:
         url = str(self._host)
         headers = {"Content-Type": "application/x-amz-json-1.1"}
 
-        url = getSignedURL("GET", service, region, "127.0.0.1", url)
+        print(url)
+        url = getSignedURL(
+            "GET",
+            service,
+            region,
+            "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",
+            url,
+        )
         # headers = {
         #     "Accept-Encoding": "gzip, deflate, br",
         #     "Accept-Language": "en-US,en;q=0.9",

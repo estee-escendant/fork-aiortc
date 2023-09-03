@@ -345,7 +345,7 @@ class WebsocketSignaling:
 
         print(url)
         url = getSignedURL(
-            "GET",
+            "POST",
             service,
             region,
             "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",

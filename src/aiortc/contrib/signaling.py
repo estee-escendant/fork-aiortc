@@ -217,7 +217,7 @@ class WebsocketSignaling:
         )
 
         # Sign the request
-        SigV4Auth(boto3.Session().get_credentials(), "sts", "us-east-1").add_auth(
+        SigV4Auth(boto3.Session().get_credentials(), "sts", "eu-west-2").add_auth(
             request
         )
 

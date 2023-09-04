@@ -18,12 +18,12 @@ def object_from_string(message_str):
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
     print("encrypted_message:" + json.dumps(encrypted_message, sort_keys=True))
-    if message["messageType"] in ["SDP_ANSWER", "SDP_OFFER"]:
+    if "type" in encrypted_message and encrypted_message["type"] in ["answer", "offer"]:
         return RTCSessionDescription(**encrypted_message)
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
         candidate = candidate_from_sdp(encrypted_message["candidate"].split(":", 1)[1])
-        candidate.sdpMid = encrypted_message["id"]
-        candidate.sdpMLineIndex = encrypted_message["label"]
+        candidate.sdpMid = encrypted_message["sdpMid"]
+        candidate.sdpMLineIndex = encrypted_message["sdpMLineIndex"]
         return candidate
     elif message["messageType"] == "bye":
         return BYE
@@ -31,12 +31,15 @@ def object_from_string(message_str):
 
 def object_to_string(obj):
     if isinstance(obj, RTCSessionDescription):
-        payload = {"sdp": obj.sdp}
+        payload = {
+            "sdp": obj.sdp,
+            "messageType": obj.type,
+        }
         message = {
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
-            "messageType": obj.type,
+            "messageType": "SDP_OFFER" if obj.type == "offer" else "SDP_ANSWER",
         }
     elif isinstance(obj, RTCIceCandidate):
         payload = {

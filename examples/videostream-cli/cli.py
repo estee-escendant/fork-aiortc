@@ -167,9 +167,6 @@ def getSignedURL(method, service, region, host, endpoint):
     canonical_querystring += "&X-Amz-SignedHeaders=" + signed_headers
     # canonical_querystring += "&configuration-name=" + configuration_name
 
-    print(canonical_querystring)
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
     # ----------------------------------------------------------------------
     # Step 6. Create a hash of the payload.
     # ----------------------------------------------------------------------
@@ -192,6 +189,9 @@ def getSignedURL(method, service, region, host, endpoint):
         + "\n"
         + payload_hash
     )
+
+    print(canonical_request)
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
     # ----------------------------------------------------------------------
     # Step 8. Create the metadata string to store the information required to
@@ -357,7 +357,7 @@ if __name__ == "__main__":
     region = "eu-west-2"
 
     url = getSignedURL(
-        "POST",
+        "GET",
         service,
         region,
         endpoints["WSS"].replace("wss://", ""),

@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import sys
-import websocket
+import websockets
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -207,12 +207,13 @@ class WebsocketSignaling:
         # }
 
         print("trying to connect to signaling server via websocket")
-        websocket.enableTrace(True)
+        # websocket.enableTrace(True)
 
-        self._websocket = await websocket.create_connection(
-            url=str(self._host),
-            # header=headers,
-        )
+        self._websocket = await websockets.connect(str(self._host))
+        # self._websocket = await websocket.create_connection(
+        #     url=str(self._host),
+        #     # header=headers,
+        # )
         print("connected to signaling server via websocket")
 
     async def close(self):

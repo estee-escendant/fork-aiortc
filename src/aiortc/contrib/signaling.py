@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import websockets
+import base64
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
@@ -13,33 +14,47 @@ BYE = object()
 
 
 def object_from_string(message_str):
-    print(message_str)
+    print("object_from_string:" + message_str)
     message = json.loads(message_str)
-    print(message)
-    if message["type"] in ["answer", "offer"]:
-        return RTCSessionDescription(**message)
-    elif message["type"] == "candidate" and message["candidate"]:
-        candidate = candidate_from_sdp(message["candidate"].split(":", 1)[1])
-        candidate.sdpMid = message["id"]
-        candidate.sdpMLineIndex = message["label"]
+    payload = base64.b64decode(message["messagePayload"])
+    encrypted_message = json.loads(payload)
+    print("encrypted_message:" + encrypted_message)
+    if message["messageType"] in ["answer", "offer"]:
+        return RTCSessionDescription(**encrypted_message)
+    elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
+        candidate = candidate_from_sdp(encrypted_message["candidate"].split(":", 1)[1])
+        candidate.sdpMid = encrypted_message["id"]
+        candidate.sdpMLineIndex = encrypted_message["label"]
         return candidate
-    elif message["type"] == "bye":
+    elif message["messageType"] == "bye":
         return BYE
 
 
 def object_to_string(obj):
     if isinstance(obj, RTCSessionDescription):
-        message = {"sdp": obj.sdp, "type": obj.type}
-    elif isinstance(obj, RTCIceCandidate):
+        payload = {"sdp": obj.sdp}
         message = {
+            "messagePayload": base64.b64encode(
+                json.dumps(payload).encode("utf8")
+            ).decode("utf8"),
+            "messageType": obj.type,
+        }
+    elif isinstance(obj, RTCIceCandidate):
+        payload = {
             "candidate": "candidate:" + candidate_to_sdp(obj),
             "id": obj.sdpMid,
             "label": obj.sdpMLineIndex,
-            "type": "candidate",
+        }
+        message = {
+            "messagePayload": base64.b64encode(
+                json.dumps(payload).encode("utf8")
+            ).decode("utf8"),
+            "messageType": "candidate",
         }
     else:
         assert obj is BYE
-        message = {"type": "bye"}
+        message = {"messageType": "bye"}
+    print("object_to_string:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)
 
 
@@ -215,17 +230,8 @@ class WebsocketSignaling:
         try:
             print("waiting for data")
             data = await self._websocket.recv()
-            print("got data")
-            # while (
-            #     data is None
-            #     or data == ""
-            #     or "type"
-            #     not in data  # ignore {'messagePayload': 'eyJ...', 'messageType': 'ICE_CANDIDATE', 'senderClientId': 'X...'}
-            # ):
-            #     await asyncio.sleep(0.1)
-            #     data = await self._websocket.recv()
-            #     print("received: " + str(data))
-            while True:
+            print("received: " + str(data))
+            while data is None or data == "":
                 await asyncio.sleep(0.1)
                 data = await self._websocket.recv()
                 print("received: " + str(data))

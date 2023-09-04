@@ -214,21 +214,24 @@ class WebsocketSignaling:
     async def receive(self):
         try:
             print("waiting for data")
-            data = await self._websocket.recv()
-            print("got data")
-            print(data)
+            async for message in self._websocket:
+                print("got data")
+                print(message)
+                ret = object_from_string(message)
+                if ret == None:
+                    print("remote host says good bye!")
+
+            # data = await self._websocket.recv()
         except asyncio.IncompleteReadError:
             print("got no data")
             return
-        print("next step")
-        ret = object_from_string(data)
-        if ret == None:
-            print("remote host says good bye!")
 
         return ret
 
     async def send(self, descr):
         data = object_to_string(descr)
+        print("sending data")
+        print(data)
         await self._websocket.send(data + "\n")
 
 

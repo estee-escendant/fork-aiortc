@@ -229,7 +229,9 @@ class WebsocketSignaling:
 
     async def send(self, descr):
         data = object_to_string(descr)
+        print("sending data")
         await self._websocket.send(data + "\n")
+        print("data sent")
 
 
 def add_signaling_arguments(parser):

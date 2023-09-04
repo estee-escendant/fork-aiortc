@@ -304,6 +304,9 @@ async def run(pc, player, recorder, signaling, role):
         add_tracks()
         await pc.setLocalDescription(await pc.createOffer())
         print("Sending offer")
+        print(pc.localDescription)
+        print("Stats")
+        print(pc.getStats())
         await signaling.send(pc.localDescription)
         print("Offer sent")
 

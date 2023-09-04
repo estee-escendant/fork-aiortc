@@ -14,11 +14,10 @@ BYE = object()
 
 
 def object_from_string(message_str):
-    print("object_from_string:" + message_str)
     message = json.loads(message_str)
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
-    print("encrypted_message:" + encrypted_message)
+    print("payload:" + payload)
     if message["messageType"] in ["answer", "offer"]:
         return RTCSessionDescription(**encrypted_message)
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
@@ -231,7 +230,7 @@ class WebsocketSignaling:
             print("waiting for data")
             data = await self._websocket.recv()
             print("received: " + str(data))
-            while data is None or data == "":
+            while data is None or data == "" or "Endpoint request timed out" in data:
                 await asyncio.sleep(0.1)
                 data = await self._websocket.recv()
                 print("received: " + str(data))

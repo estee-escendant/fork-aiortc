@@ -17,8 +17,8 @@ def object_from_string(message_str):
     message = json.loads(message_str)
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
-    print("payload:" + payload)
-    if message["messageType"] in ["answer", "offer"]:
+    print("encrypted_message:" + json.dumps(encrypted_message, sort_keys=True))
+    if message["messageType"] in ["SDP_ANSWER", "SDP_OFFER"]:
         return RTCSessionDescription(**encrypted_message)
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
         candidate = candidate_from_sdp(encrypted_message["candidate"].split(":", 1)[1])

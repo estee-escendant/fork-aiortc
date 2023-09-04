@@ -219,17 +219,15 @@ class WebsocketSignaling:
             while (
                 data is None
                 or data == ""
-                or (
-                    "messageType" in data and data["messageType"] == "ICE_CANDIDATE"
-                )  # ignore {'messagePayload': 'eyJ...', 'messageType': 'ICE_CANDIDATE', 'senderClientId': 'X...'}
+                or "type"
+                not in data  # ignore {'messagePayload': 'eyJ...', 'messageType': 'ICE_CANDIDATE', 'senderClientId': 'X...'}
             ):
                 await asyncio.sleep(0.1)
                 data = await self._websocket.recv()
+                print("received: " + str(data))
         except asyncio.IncompleteReadError:
             print("got no data")
             return
-        print("processing data received")
-        print(data)
         ret = object_from_string(data)
         if ret == None:
             print("remote host says good bye!")

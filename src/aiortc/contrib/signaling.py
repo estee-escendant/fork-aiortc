@@ -14,6 +14,7 @@ BYE = object()
 
 def object_from_string(message_str):
     message = json.loads(message_str)
+    print(message)
     if message["type"] in ["answer", "offer"]:
         return RTCSessionDescription(**message)
     elif message["type"] == "candidate" and message["candidate"]:

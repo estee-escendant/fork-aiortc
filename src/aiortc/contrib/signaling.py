@@ -216,6 +216,8 @@ class WebsocketSignaling:
             print("waiting for data")
             data = await self._websocket.recv()
             print("got data")
+            while data is None:
+                await asyncio.sleep(0.1)
             print(data)
         except asyncio.IncompleteReadError:
             print("got no data")

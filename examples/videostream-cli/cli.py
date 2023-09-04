@@ -303,12 +303,16 @@ async def run(pc, player, recorder, signaling, role):
         # send offer
         add_tracks()
         await pc.setLocalDescription(await pc.createOffer())
+        while pc.localDescription is None:
+            await asyncio.sleep(0.1)
         print("Sending offer")
         print(pc.localDescription)
         print("Stats")
-        print(pc.getStats())
+        print(await pc.getStats())
         await signaling.send(pc.localDescription)
         print("Offer sent")
+
+    await asyncio.sleep(10)
 
     # consume signaling
     while True:
@@ -317,6 +321,8 @@ async def run(pc, player, recorder, signaling, role):
         print("Received event")
         if isinstance(obj, RTCSessionDescription):
             await pc.setRemoteDescription(obj)
+            while pc.remoteDescription is None:
+                await asyncio.sleep(0.1)
             await recorder.start()
 
             if obj.type == "offer":

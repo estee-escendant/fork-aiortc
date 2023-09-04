@@ -216,12 +216,16 @@ class WebsocketSignaling:
             print("waiting for data")
             data = await self._websocket.recv()
             print("got data")
-            while (
-                data is None
-                or data == ""
-                or "type"
-                not in data  # ignore {'messagePayload': 'eyJ...', 'messageType': 'ICE_CANDIDATE', 'senderClientId': 'X...'}
-            ):
+            # while (
+            #     data is None
+            #     or data == ""
+            #     or "type"
+            #     not in data  # ignore {'messagePayload': 'eyJ...', 'messageType': 'ICE_CANDIDATE', 'senderClientId': 'X...'}
+            # ):
+            #     await asyncio.sleep(0.1)
+            #     data = await self._websocket.recv()
+            #     print("received: " + str(data))
+            while True:
                 await asyncio.sleep(0.1)
                 data = await self._websocket.recv()
                 print("received: " + str(data))

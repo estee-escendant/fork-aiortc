@@ -306,11 +306,7 @@ async def run(pc, player, recorder, signaling, role):
         while pc.localDescription is None:
             await asyncio.sleep(0.1)
         print("Sending offer")
-        print(pc.localDescription)
-        print("Stats")
-        print(await pc.getStats())
         await signaling.send(pc.localDescription)
-
         print("Offer sent")
         print("Connect state:" + pc.connectionState)
 

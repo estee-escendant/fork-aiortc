@@ -310,14 +310,15 @@ async def run(pc, player, recorder, signaling, role):
         print("Stats")
         print(await pc.getStats())
         await signaling.send(pc.localDescription)
-        print("Offer sent")
 
-    await asyncio.sleep(10)
+        print("Offer sent")
+        print("Connect state:" + pc.connectionState)
 
     # consume signaling
     while True:
         print("Waiting for event")
         obj = await signaling.receive()
+        print("Connect state:" + pc.connectionState)
         print("Received event")
         if isinstance(obj, RTCSessionDescription):
             await pc.setRemoteDescription(obj)

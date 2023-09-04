@@ -194,13 +194,24 @@ class WebsocketSignaling:
         self._websocket = None
 
     async def connect(self):
+        headers = {
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "Cache-Control": "no-cache",
+            "Connection": "Upgrade",
+            "Host": "m-978ce4ad.kinesisvideo.eu-west-2.amazonaws.com",
+            "Origin": "http://localhost:3001",
+            "Pragma": "no-cache",
+            "Upgrade": "websocket",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+        }
+
         print("trying to connect to signaling server via websocket")
         websocket.enableTrace(True)
-        print("+++++++++++++++++++++++++++++++")
 
         self._websocket = await websocket.create_connection(
             url=str(self._host),
-            # host=str(self._host).replace("wss://", ""),
+            header=headers,
         )
         print("connected to signaling server via websocket")
 

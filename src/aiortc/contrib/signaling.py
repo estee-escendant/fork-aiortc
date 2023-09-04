@@ -199,7 +199,9 @@ class WebsocketSignaling:
         print("trying to connect to signaling server via websocket")
         # websocket.enableTrace(True)
 
-        self._websocket = await websockets.connect(str(self._host))
+        self._websocket = await websockets.connect(
+            str(self._host) + ":" + str(self._port)
+        )
         # self._websocket = await websocket.create_connection(
         #     url=str(self._host),
         #     # header=headers,
@@ -214,24 +216,21 @@ class WebsocketSignaling:
     async def receive(self):
         try:
             print("waiting for data")
-            async for message in self._websocket:
-                print("got data")
-                print(message)
-                ret = object_from_string(message)
-                if ret == None:
-                    print("remote host says good bye!")
-
-            # data = await self._websocket.recv()
+            data = await self._websocket.recv()
+            print("got data")
+            print(data)
         except asyncio.IncompleteReadError:
             print("got no data")
             return
+        print("next step")
+        ret = object_from_string(data)
+        if ret == None:
+            print("remote host says good bye!")
 
         return ret
 
     async def send(self, descr):
         data = object_to_string(descr)
-        print("sending data")
-        print(data)
         await self._websocket.send(data + "\n")
 
 

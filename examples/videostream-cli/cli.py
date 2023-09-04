@@ -355,6 +355,7 @@ if __name__ == "__main__":
         endpoints["WSS"],
     )
     args.signaling_host = url
+    args.signaling_port = 443
     args.signaling = "websocket"
 
     print(endpoints)

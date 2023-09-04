@@ -190,9 +190,6 @@ def getSignedURL(method, service, region, host, endpoint):
         + payload_hash
     )
 
-    print(canonical_request)
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-
     # ----------------------------------------------------------------------
     # Step 8. Create the metadata string to store the information required to
     # calculate the signature in the following step.
@@ -206,9 +203,6 @@ def getSignedURL(method, service, region, host, endpoint):
         + "\n"
         + hashlib.sha256(canonical_request.encode("utf-8")).hexdigest()
     )
-
-    print(string_to_sign)
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
     # ----------------------------------------------------------------------
     # Step 9. Calculate the signature by using a signing key that"s obtained
@@ -310,9 +304,6 @@ async def run(pc, player, recorder, signaling, role):
         add_tracks()
         await pc.setLocalDescription(await pc.createOffer())
         print("Sending offer")
-        print("XXXXXXXXXXXX")
-        # print(pc.localDescription)
-        print("XXXXXXXXXXXX")
         await signaling.send(pc.localDescription)
         print("Offer sent")
 

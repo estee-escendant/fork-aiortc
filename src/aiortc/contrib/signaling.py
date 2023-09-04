@@ -199,9 +199,7 @@ class WebsocketSignaling:
         print("trying to connect to signaling server via websocket")
         # websocket.enableTrace(True)
 
-        self._websocket = await websockets.connect(
-            str(self._host) + ":" + str(self._port)
-        )
+        self._websocket = await websockets.connect(str(self._host))
         # self._websocket = await websocket.create_connection(
         #     url=str(self._host),
         #     # header=headers,
@@ -249,7 +247,7 @@ def add_signaling_arguments(parser):
         help="Signaling host (tcp-socket and websocket only)",
     )
     parser.add_argument(
-        "--signaling-port", default=1234, help="Signaling port (tcp-socket only)"
+        "--signaling-port", default=443, help="Signaling port (tcp-socket only)"
     )
     parser.add_argument(
         "--signaling-path",

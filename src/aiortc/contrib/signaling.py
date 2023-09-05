@@ -31,32 +31,17 @@ def object_from_string(message_str):
 
 def object_to_string(obj):
     if isinstance(obj, RTCSessionDescription):
-        payload = {
-            "sdp": obj.sdp,
-            "messageType": obj.type,
-        }
-        message = {
-            "messagePayload": base64.b64encode(
-                json.dumps(payload).encode("utf8")
-            ).decode("utf8"),
-            "messageType": "SDP_OFFER" if obj.type == "offer" else "SDP_ANSWER",
-        }
+        message = {"sdp": obj.sdp, "type": obj.type}
     elif isinstance(obj, RTCIceCandidate):
-        payload = {
+        message = {
             "candidate": "candidate:" + candidate_to_sdp(obj),
             "id": obj.sdpMid,
             "label": obj.sdpMLineIndex,
-        }
-        message = {
-            "messagePayload": base64.b64encode(
-                json.dumps(payload).encode("utf8")
-            ).decode("utf8"),
-            "messageType": "candidate",
+            "type": "candidate",
         }
     else:
         assert obj is BYE
-        message = {"messageType": "bye"}
-    print("object_to_string:" + json.dumps(message, sort_keys=True))
+        message = {"type": "bye"}
     return json.dumps(message, sort_keys=True)
 
 
@@ -232,11 +217,9 @@ class WebsocketSignaling:
         try:
             print("waiting for data")
             data = await self._websocket.recv()
-            print("received: " + str(data))
             while data is None or data == "" or "Endpoint request timed out" in data:
                 await asyncio.sleep(0.1)
                 data = await self._websocket.recv()
-                print("received: " + str(data))
         except asyncio.IncompleteReadError:
             print("got no data")
             return
@@ -247,10 +230,8 @@ class WebsocketSignaling:
         return ret
 
     async def send(self, descr):
-        data = object_to_string(descr)
-        print("sending data")
+        data = object_to_string(descr).encode("utf8")
         await self._websocket.send(data + "\n")
-        print("data sent")
 
 
 def add_signaling_arguments(parser):

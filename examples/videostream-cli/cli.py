@@ -296,35 +296,31 @@ async def run(pc, player, recorder, signaling, role):
 
     # connect signaling
     print("Connecting to signaling server")
+    # connect signaling
     await signaling.connect()
-    print("Connected to signaling server")
 
-    if role == "offer":
-        # send offer
-        add_tracks()
-        await pc.setLocalDescription(await pc.createOffer())
-        while pc.localDescription is None:
-            await asyncio.sleep(0.1)
-        print("Sending offer")
-        await signaling.send(pc.localDescription)
-        print("Offer sent")
-        print("Connect state:" + pc.connectionState)
+    # if role == "offer":
+    #     # send offer
+    #     add_tracks()
+    #     await pc.setLocalDescription(await pc.createOffer())
+    #     await signaling.send(pc.localDescription)
 
     # consume signaling
     while True:
-        print("Waiting for event")
         obj = await signaling.receive()
-        print("Connect state:" + pc.connectionState)
-        print("Received event")
+        print("Received %s" % obj.type)
+        print("SignalingState %s" % pc.signalingState)
+
         if isinstance(obj, RTCSessionDescription):
+            print("got offer or answer")
             await pc.setRemoteDescription(obj)
-            while pc.remoteDescription is None:
-                await asyncio.sleep(0.1)
             await recorder.start()
 
             if obj.type == "offer":
+                print("add tracks and send answer back")
                 # send answer
                 add_tracks()
+                print("setLocalDescription")
                 await pc.setLocalDescription(await pc.createAnswer())
                 await signaling.send(pc.localDescription)
         elif isinstance(obj, RTCIceCandidate):

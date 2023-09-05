@@ -17,7 +17,7 @@ def object_from_string(message_str):
     message = json.loads(message_str)
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
-    print("encrypted_message:" + json.dumps(encrypted_message, sort_keys=True))
+    print("encrypted_message_received:" + json.dumps(encrypted_message, sort_keys=True))
     if "type" in encrypted_message and encrypted_message["type"] in ["answer", "offer"]:
         return RTCSessionDescription(**encrypted_message)
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
@@ -25,23 +25,38 @@ def object_from_string(message_str):
         candidate.sdpMid = encrypted_message["sdpMid"]
         candidate.sdpMLineIndex = encrypted_message["sdpMLineIndex"]
         return candidate
-    elif message["messageType"] == "bye":
+    elif message["messageType"] == "BYE":
         return BYE
 
 
 def object_to_string(obj):
     if isinstance(obj, RTCSessionDescription):
-        message = {"sdp": obj.sdp, "type": obj.type}
-    elif isinstance(obj, RTCIceCandidate):
+        payload = {
+            "sdp": obj.sdp,
+            "type": obj.type,
+        }
         message = {
+            "messagePayload": base64.b64encode(
+                json.dumps(payload).encode("utf8")
+            ).decode("utf8"),
+            "messageType": "SDP_OFFER" if obj.type == "offer" else "SDP_ANSWER",
+        }
+    elif isinstance(obj, RTCIceCandidate):
+        payload = {
             "candidate": "candidate:" + candidate_to_sdp(obj),
             "id": obj.sdpMid,
             "label": obj.sdpMLineIndex,
-            "type": "candidate",
+        }
+        message = {
+            "messagePayload": base64.b64encode(
+                json.dumps(payload).encode("utf8")
+            ).decode("utf8"),
+            "messageType": "ICE_CANDIDATE",
         }
     else:
         assert obj is BYE
-        message = {"type": "bye"}
+        message = {"messageType": "BYE"}
+    print("message_sent:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)
 
 
@@ -215,7 +230,6 @@ class WebsocketSignaling:
 
     async def receive(self):
         try:
-            print("waiting for data")
             data = await self._websocket.recv()
             while data is None or data == "" or "Endpoint request timed out" in data:
                 await asyncio.sleep(0.1)
@@ -230,7 +244,7 @@ class WebsocketSignaling:
         return ret
 
     async def send(self, descr):
-        data = object_to_string(descr).encode("utf8")
+        data = object_to_string(descr)
         await self._websocket.send(data + "\n")
 
 

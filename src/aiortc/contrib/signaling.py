@@ -30,6 +30,8 @@ def object_from_string(message_str):
 
 
 def object_to_string(obj):
+    print(obj)
+    print("object_to_string:" + str(obj))
     if isinstance(obj, RTCSessionDescription):
         payload = {
             "sdp": obj.sdp,
@@ -213,7 +215,6 @@ class WebsocketSignaling:
         self._websocket = None
 
     async def connect(self):
-        print("trying to connect to signaling server via websocket")
         # websocket.enableTrace(True)
 
         self._websocket = await websockets.connect(str(self._host))
@@ -221,7 +222,6 @@ class WebsocketSignaling:
         #     url=str(self._host),
         #     # header=headers,
         # )
-        print("connected to signaling server via websocket")
 
     async def close(self):
         if self._websocket is not None and self._websocket.open is True:

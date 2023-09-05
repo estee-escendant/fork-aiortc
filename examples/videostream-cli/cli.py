@@ -300,22 +300,69 @@ async def run(pc, player, recorder, signaling, role):
     await signaling.connect()
     print("Connected to signaling server")
 
+    # if role == "offer":
+    #     # send offer
+    #     add_tracks()
+    #     await pc.setLocalDescription(await pc.createOffer())
+    #     await signaling.send(pc.localDescription)
+
+    # based on
+    # https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
+    # // keep track of some negotiation state to prevent races and errors
+    makingOffer = False
+    ignoreOffer = False
+    isSettingRemoteAnswerPending = False
+    # The polite peer uses rollback to avoid collision with an incoming offer.
+    # The impolite peer ignores an incoming offer when this would collide with its own.
+    polite = False
+
+    # // send any ice candidates to the other peer
+    # pc.onicecandidate = ({candidate}) => signaling.send({candidate});
+
+    # # let the "negotiationneeded" event trigger offer generation
+    # pc.on("negotiationneeded")
     if role == "offer":
-        # send offer
-        add_tracks()
-        await pc.setLocalDescription(await pc.createOffer())
-        await signaling.send(pc.localDescription)
+        try:
+            makingOffer = True
+            await pc.setLocalDescription(await pc.createAnswer())
+            await signaling.send(pc.localDescription)
+        except:
+            print("Something went wrong")
+        finally:
+            makingOffer = False
 
     # consume signaling
     while True:
         obj = await signaling.receive()
         print("Received %s" % obj.type)
+        print("ConnectionState %s" % pc.connectionState)
         print("SignalingState %s" % pc.signalingState)
 
-        if isinstance(obj, RTCSessionDescription):
+        if pc.connectionState != "stable":
+            # send ICE candidates to the other peer
+            await signaling.send(pc.localDescription)
+        elif pc.connectionState == "failed":
+            print("Connection failed")
+            break
+        elif isinstance(obj, RTCSessionDescription):
+            # // An offer may come in while we are busy processing SRD(answer).
+            # // In this case, we will be in "stable" by the time the offer is processed
+            # // so it is safe to chain it on our Operations Chain now.
+            readyForOffer = not makingOffer and (
+                pc.signalingState == "stable" or isSettingRemoteAnswerPending
+            )
+            offerCollision = obj.type == "offer" and not readyForOffer
+
+            ignoreOffer = not polite and offerCollision
+            if ignoreOffer:
+                continue
+
+            isSettingRemoteAnswerPending = obj.type == "answer"
             await pc.setRemoteDescription(obj)
+            # SRD rolls back as needed
             await recorder.start()
 
+            isSettingRemoteAnswerPending = False
             if obj.type == "offer":
                 # send answer
                 add_tracks()

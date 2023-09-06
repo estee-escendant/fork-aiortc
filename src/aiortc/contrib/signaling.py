@@ -12,7 +12,7 @@ from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 logger = logging.getLogger(__name__)
 BYE = object()
 
-logger.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def object_from_string(message_str):

@@ -12,6 +12,8 @@ from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 logger = logging.getLogger(__name__)
 BYE = object()
 
+logger.basicConfig(level=logging.DEBUG)
+
 
 def object_from_string(message_str):
     message = json.loads(message_str)
@@ -30,8 +32,6 @@ def object_from_string(message_str):
 
 
 def object_to_string(obj):
-    print(obj)
-    print("object_to_string:" + str(obj))
     if isinstance(obj, RTCSessionDescription):
         payload = {
             "sdp": obj.sdp,
@@ -56,7 +56,7 @@ def object_to_string(obj):
             "messageType": "ICE_CANDIDATE",
         }
     else:
-        assert obj is BYE
+        assert obj is BYE or obj is None
         message = {"messageType": "BYE"}
     print("message_sent:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)

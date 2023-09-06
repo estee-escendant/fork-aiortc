@@ -270,6 +270,7 @@ def getRTCPeerConfiguration():
             )
         )
     # add STUN server (could disable in future but trying everything first)
+    # aioice.stun.TransactionFailed: STUN transaction failed (403 - Forbidden IP) -> error from loading ICE config from viewer
     iceServerList.append(
         RTCIceServer(
             urls=["stun:stun.kinesisvideo.eu-west-2.amazonaws.com:443"],
@@ -300,11 +301,11 @@ async def run(pc, player, recorder, signaling, role):
     await signaling.connect()
     print("Connected to signaling server")
 
-    # if role == "offer":
-    #     # send offer
-    #     add_tracks()
-    #     await pc.setLocalDescription(await pc.createOffer())
-    #     await signaling.send(pc.localDescription)
+    if role == "offer":
+        # send offer
+        add_tracks()
+        await pc.setLocalDescription(await pc.createOffer())
+        await signaling.send(pc.localDescription)
 
     # based on
     # https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
@@ -316,20 +317,19 @@ async def run(pc, player, recorder, signaling, role):
     # The impolite peer ignores an incoming offer when this would collide with its own.
     polite = False
 
-    # // send any ice candidates to the other peer
-    # pc.onicecandidate = ({candidate}) => signaling.send({candidate});
-
     # # let the "negotiationneeded" event trigger offer generation
     # pc.on("negotiationneeded")
-    if role == "offer":
-        try:
-            makingOffer = True
-            await pc.setLocalDescription(await pc.createAnswer())
-            await signaling.send(pc.localDescription)
-        except:
-            print("Something went wrong")
-        finally:
-            makingOffer = False
+    # while pc.iceGatheringState != "complete" and role == "offer":
+    #     try:
+    #         makingOffer = True
+    #         add_tracks()
+    #         await pc.setLocalDescription(await pc.createOffer())
+    #         await signaling.send(pc.localDescription)
+    #     except Exception as error:
+    #         print("Something went wrong")
+    #         print(error)
+    #     finally:
+    #         makingOffer = False
 
     # consume signaling
     while True:
@@ -337,11 +337,10 @@ async def run(pc, player, recorder, signaling, role):
         print("Received %s" % obj.type)
         print("ConnectionState %s" % pc.connectionState)
         print("SignalingState %s" % pc.signalingState)
+        print("IceConnectionState %s" % pc.iceConnectionState)
+        print("IceGatheringState %s" % pc.iceGatheringState)
 
-        if pc.connectionState != "stable":
-            # send ICE candidates to the other peer
-            await signaling.send(pc.localDescription)
-        elif pc.connectionState == "failed":
+        if pc.connectionState == "failed":
             print("Connection failed")
             break
         elif isinstance(obj, RTCSessionDescription):
@@ -358,11 +357,13 @@ async def run(pc, player, recorder, signaling, role):
                 continue
 
             isSettingRemoteAnswerPending = obj.type == "answer"
+            print("Setting remote description")
             await pc.setRemoteDescription(obj)
             # SRD rolls back as needed
             await recorder.start()
 
             isSettingRemoteAnswerPending = False
+            print("Remote description set")
             if obj.type == "offer":
                 # send answer
                 add_tracks()
@@ -370,6 +371,15 @@ async def run(pc, player, recorder, signaling, role):
                 await signaling.send(pc.localDescription)
         elif isinstance(obj, RTCIceCandidate):
             await pc.addIceCandidate(obj)
+            # send the ice candidate back to the other party
+            await signaling.send(obj)
+            # do we have enough candidates yet to start the stream?
+            # if pc.iceGatheringState == "complete":
+            #     # send offer
+            #     makingOffer = True
+            #     add_tracks()
+            #     await pc.setLocalDescription(await pc.createOffer())
+            #     await signaling.send(pc.localDescription)
         elif obj is BYE:
             print("Exiting")
             break

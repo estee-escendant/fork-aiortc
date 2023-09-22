@@ -247,6 +247,8 @@ class WebsocketSignaling:
         return ret
 
     async def send(self, descr):
+        print("sending data")
+        print(descr)
         data = object_to_string(descr)
         await self._websocket.send(data + "\n")
 

@@ -3,6 +3,7 @@ import asyncio
 import logging
 import math
 import boto3
+import json
 
 import cv2
 import numpy
@@ -315,21 +316,7 @@ async def run(pc, player, recorder, signaling, role):
     isSettingRemoteAnswerPending = False
     # The polite peer uses rollback to avoid collision with an incoming offer.
     # The impolite peer ignores an incoming offer when this would collide with its own.
-    polite = False
-
-    # # let the "negotiationneeded" event trigger offer generation
-    # pc.on("negotiationneeded")
-    # while pc.iceGatheringState != "complete" and role == "offer":
-    #     try:
-    #         makingOffer = True
-    #         add_tracks()
-    #         await pc.setLocalDescription(await pc.createOffer())
-    #         await signaling.send(pc.localDescription)
-    #     except Exception as error:
-    #         print("Something went wrong")
-    #         print(error)
-    #     finally:
-    #         makingOffer = False
+    polite = True
 
     # consume signaling
     while True:
@@ -357,22 +344,38 @@ async def run(pc, player, recorder, signaling, role):
                 continue
 
             isSettingRemoteAnswerPending = obj.type == "answer"
+
+            print("**********************")
+            print("readyForOffer %s" % readyForOffer)
+            print("ignoreOffer %s" % ignoreOffer)
+            print("offerCollision %s" % offerCollision)
+            print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
+            print("**********************")
+
             print("Setting remote description")
+            print(obj)
             await pc.setRemoteDescription(obj)
+            print("1")
+
+            print("offer set")
             # SRD rolls back as needed
             await recorder.start()
 
             isSettingRemoteAnswerPending = False
             print("Remote description set")
             if obj.type == "offer":
+                print("2")
                 # send answer
+                print("Send answer")
                 add_tracks()
                 await pc.setLocalDescription(await pc.createAnswer())
+                print("going to send answer")
                 await signaling.send(pc.localDescription)
+
         elif isinstance(obj, RTCIceCandidate):
             await pc.addIceCandidate(obj)
             # send the ice candidate back to the other party
-            await signaling.send(obj)
+            # await signaling.send(obj)
             # do we have enough candidates yet to start the stream?
             # if pc.iceGatheringState == "complete":
             #     # send offer

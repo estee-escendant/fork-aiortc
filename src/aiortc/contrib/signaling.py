@@ -32,7 +32,7 @@ def object_from_string(message_str):
 
 
 def object_to_string(obj):
-    print("object type: " + type(obj))
+    print(type(obj))
     print("object: " + obj.type)
     print("object: " + json.dumps(obj))
     if isinstance(obj, RTCSessionDescription):

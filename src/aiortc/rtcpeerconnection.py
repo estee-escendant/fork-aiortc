@@ -824,7 +824,9 @@ class RTCPeerConnection(AsyncIOEventEmitter):
 
         # parse and validate description
         description = sdp.SessionDescription.parse(sessionDescription.sdp)
+        print("A1")
         description.type = sessionDescription.type
+        print("A2")
         self.__validate_description(description, is_local=False)
 
         print("B")

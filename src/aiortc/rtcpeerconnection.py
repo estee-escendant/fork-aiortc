@@ -827,6 +827,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         print("A1")
         description.type = sessionDescription.type
         print("A2")
+        print(description)
         self.__validate_description(description, is_local=False)
 
         print("B")
@@ -1231,6 +1232,8 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         self, description: sdp.SessionDescription, is_local: bool
     ) -> None:
         # check description is compatible with signaling state
+        print("01")
+        print(description.type)
         if is_local:
             if description.type == "offer":
                 if self.signalingState not in ["stable", "have-local-offer"]:
@@ -1264,6 +1267,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         f'"{self.signalingState}"'
                     )
 
+        print("02")
         for media in description.media:
             # check ICE credentials were provided
             if not media.ice.usernameFragment or not media.ice.password:
@@ -1284,6 +1288,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             if media.kind in ["audio", "video"] and not media.rtcp_mux:
                 raise ValueError("RTCP mux is not enabled")
 
+        print("03")
         # check the number of media section matches
         if description.type in ["answer", "pranswer"]:
             offer = (

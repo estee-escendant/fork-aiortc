@@ -820,12 +820,14 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             sessionDescription.type,
             sessionDescription.sdp,
         )
+        print("A")
 
         # parse and validate description
         description = sdp.SessionDescription.parse(sessionDescription.sdp)
         description.type = sessionDescription.type
         self.__validate_description(description, is_local=False)
 
+        print("B")
         # apply description
         iceCandidates: Dict[RTCIceTransport, sdp.MediaDescription] = {}
         trackEvents = []
@@ -929,6 +931,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         role="server" if media.dtls.role == "client" else "client"
                     )
 
+        print("C")
         # remove bundled transports
         bundle = next((x for x in description.group if x.semantic == "BUNDLE"), None)
         if bundle and bundle.items:
@@ -972,6 +975,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             self.__updateIceConnectionState()
             self.__updateConnectionState()
 
+        print("D")
         # add remote candidates
         coros = [
             add_remote_candidates(iceTransport, media)
@@ -979,6 +983,7 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         ]
         await asyncio.gather(*coros)
 
+        print("E")
         # FIXME: in aiortc 2.0.0 emit RTCTrackEvent directly
         for event in trackEvents:
             self.emit("track", event.track)
@@ -986,12 +991,14 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         # connect
         asyncio.ensure_future(self.__connect())
 
+        print("F")
         # update signaling state
         if description.type == "offer":
             self.__setSignalingState("have-remote-offer")
         elif description.type == "answer":
             self.__setSignalingState("stable")
 
+        print("G")
         # replace description
         if description.type == "answer":
             self.__currentRemoteDescription = description

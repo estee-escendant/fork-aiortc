@@ -1235,8 +1235,11 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         print("01")
         print(description.type)
         if is_local:
+            print("011")
             if description.type == "offer":
+                print("0111")
                 if self.signalingState not in ["stable", "have-local-offer"]:
+                    print("01111")
                     raise InvalidStateError(
                         "Cannot handle offer in signaling state "
                         f'"{self.signalingState}"'
@@ -1251,8 +1254,11 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         f'"{self.signalingState}"'
                     )
         else:
+            print("012")
             if description.type == "offer":
+                print("0121")
                 if self.signalingState not in ["stable", "have-remote-offer"]:
+                    print("01211")
                     raise InvalidStateError(
                         "Cannot handle offer in signaling state "
                         f'"{self.signalingState}"'

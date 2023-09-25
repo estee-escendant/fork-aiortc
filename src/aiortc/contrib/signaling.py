@@ -3,7 +3,9 @@ import json
 import logging
 import os
 import sys
-import websockets
+
+# import websockets
+import websocket
 import base64
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
@@ -218,13 +220,13 @@ class WebsocketSignaling:
         self._websocket = None
 
     async def connect(self):
-        # websocket.enableTrace(True)
+        websocket.enableTrace(True)
 
-        self._websocket = await websockets.connect(str(self._host))
-        # self._websocket = await websocket.create_connection(
-        #     url=str(self._host),
-        #     # header=headers,
-        # )
+        # self._websocket = await websockets.connect(str(self._host))
+        self._websocket = await websocket.create_connection(
+            url=str(self._host),
+            # header=headers,
+        )
 
     async def close(self):
         if self._websocket is not None and self._websocket.open is True:
@@ -241,7 +243,7 @@ class WebsocketSignaling:
             print("got no data")
             return
         ret = object_from_string(data)
-        if ret == None:
+        if ret is None:
             print("remote host says good bye!")
 
         return ret
@@ -252,6 +254,49 @@ class WebsocketSignaling:
             print(descr)
             data = object_to_string(descr)
             await self._websocket.send(data + "\n")
+
+
+# class WebsocketSignaling:
+#     def __init__(self, host, port):
+#         self._host = host
+#         self._port = port
+#         self._websocket = None
+
+#     async def connect(self):
+#         # websocket.enableTrace(True)
+
+#         self._websocket = await websockets.connect(str(self._host))
+#         # self._websocket = await websocket.create_connection(
+#         #     url=str(self._host),
+#         #     # header=headers,
+#         # )
+
+#     async def close(self):
+#         if self._websocket is not None and self._websocket.open is True:
+#             await self.send(None)
+#             await self._websocket.close()
+
+#     async def receive(self):
+#         try:
+#             data = await self._websocket.recv()
+#             while data is None or data == "" or "Endpoint request timed out" in data:
+#                 await asyncio.sleep(0.1)
+#                 data = await self._websocket.recv()
+#         except asyncio.IncompleteReadError:
+#             print("got no data")
+#             return
+#         ret = object_from_string(data)
+#         if ret == None:
+#             print("remote host says good bye!")
+
+#         return ret
+
+#     async def send(self, descr):
+#         print("sending data")
+#         if descr is not None:
+#             print(descr)
+#             data = object_to_string(descr)
+#             await self._websocket.send(data + "\n")
 
 
 def add_signaling_arguments(parser):

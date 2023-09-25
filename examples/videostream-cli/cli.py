@@ -241,10 +241,17 @@ def getRTCPeerConfiguration():
     response = client.get_signaling_channel_endpoint(
         ChannelARN=channelARN,
         SingleMasterChannelEndpointConfiguration={
+            # This property is used to determine the nature of communication over this SINGLE_MASTER signaling channel.
+            # If WSS is specified, this API returns a websocket endpoint. If HTTPS is specified, this API returns an HTTPS endpoint.
             "Protocols": [
                 "WSS",
                 "HTTPS",
             ],  # WSS | HTTPS | WEBRTC (used for media capture which we are not doing right now)
+            # This property is used to determine messaging permissions in this SINGLE_MASTER signaling channel.
+            # If MASTER is specified, this API returns an endpoint that a client can use to receive offers from and
+            # send answers to any of the viewers on this signaling channel. If VIEWER is specified, this API
+            # returns an endpoint that a client can use only to send offers to another MASTER client on this
+            # signaling channel.
             "Role": "MASTER",
         },
     )
@@ -302,12 +309,6 @@ async def run(pc, player, recorder, signaling, role):
     await signaling.connect()
     print("Connected to signaling server")
 
-    if role == "offer":
-        # send offer
-        add_tracks()
-        await pc.setLocalDescription(await pc.createOffer())
-        await signaling.send(pc.localDescription)
-
     # based on
     # https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
     # // keep track of some negotiation state to prevent races and errors
@@ -317,6 +318,13 @@ async def run(pc, player, recorder, signaling, role):
     # The polite peer uses rollback to avoid collision with an incoming offer.
     # The impolite peer ignores an incoming offer when this would collide with its own.
     polite = True
+
+    if role == "offer":
+        # send offer
+        add_tracks()
+        offer = await pc.createOffer()
+        await pc.setLocalDescription(offer)
+        await signaling.send(offer)
 
     # consume signaling
     while True:
@@ -361,18 +369,29 @@ async def run(pc, player, recorder, signaling, role):
             # SRD rolls back as needed
             await recorder.start()
 
+            print("Recorder started")
+
             isSettingRemoteAnswerPending = False
             print("Remote description set")
             if obj.type == "offer":
                 print("2")
+                print("**********************")
+                print("readyForOffer %s" % readyForOffer)
+                print("ignoreOffer %s" % ignoreOffer)
+                print("offerCollision %s" % offerCollision)
+                print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
+                print("**********************")
+
                 # send answer
                 print("Send answer")
                 add_tracks()
-                await pc.setLocalDescription(await pc.createAnswer())
+                answer = await pc.createAnswer()
+                await pc.setLocalDescription(answer)
                 print("going to send answer")
-                await signaling.send(pc.localDescription)
+                await signaling.send(answer)
 
         elif isinstance(obj, RTCIceCandidate):
+            print("Adding ice candidate")
             await pc.addIceCandidate(obj)
             # send the ice candidate back to the other party
             # await signaling.send(obj)

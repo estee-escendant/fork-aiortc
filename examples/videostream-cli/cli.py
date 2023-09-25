@@ -3,7 +3,6 @@ import asyncio
 import logging
 import math
 import boto3
-import json
 
 import cv2
 import numpy

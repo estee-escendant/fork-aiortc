@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import ssl
 
 # import websockets
 import websocket
@@ -223,10 +224,12 @@ class WebsocketSignaling:
         websocket.enableTrace(True)
 
         # self._websocket = await websockets.connect(str(self._host))
-        self._websocket = await websocket.create_connection(
+        self._websocket = websocket.create_connection(
             url=str(self._host),
+            sslopt={"cert_reqs": ssl.CERT_NONE}
             # header=headers,
         )
+        print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
 
     async def close(self):
         if self._websocket is not None and self._websocket.open is True:

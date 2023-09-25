@@ -232,7 +232,7 @@ class WebsocketSignaling:
         print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
 
     async def close(self):
-        if self._websocket is not None and self._websocket.open is True:
+        if self._websocket is not None:
             await self.send(None)
             await self._websocket.close()
 

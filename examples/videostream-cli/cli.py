@@ -251,7 +251,7 @@ def getRTCPeerConfiguration():
             # send answers to any of the viewers on this signaling channel. If VIEWER is specified, this API
             # returns an endpoint that a client can use only to send offers to another MASTER client on this
             # signaling channel.
-            "Role": "MASTER",
+            "Role": "VIEWER",
         },
     )
     # reduce ResourceEndpointList to a dictionary with the key being the Protocol and the value being the ResourceEndpoint
@@ -388,6 +388,7 @@ async def run(pc, player, recorder, signaling, role):
                 await pc.setLocalDescription(answer)
                 print("going to send answer")
                 await signaling.send(answer)
+                await asyncio.sleep(0)  # yield control to the event loop
 
         elif isinstance(obj, RTCIceCandidate):
             print("Adding ice candidate")

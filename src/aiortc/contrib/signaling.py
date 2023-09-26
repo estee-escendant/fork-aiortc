@@ -273,7 +273,7 @@ class WebsocketSignaling:
     async def connect(self):
         # websocket.enableTrace(True)
 
-        self._websocket = await websockets.connect(str(self._host), ssl=True)
+        self._websocket = await websockets.connect(str(self._host))
         # self._websocket = await websocket.create_connection(
         #     url=str(self._host),
         #     # header=headers,

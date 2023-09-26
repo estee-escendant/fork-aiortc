@@ -3,11 +3,7 @@ import json
 import logging
 import os
 import sys
-import ssl
-
 import websockets
-
-# import websocket
 import base64
 
 from aiortc import RTCIceCandidate, RTCSessionDescription
@@ -215,60 +211,11 @@ class UnixSocketSignaling:
         self._writer.write(data + b"\n")
 
 
-# class WebsocketSignaling:
-#     def __init__(self, host, port):
-#         self._host = host
-#         self._port = port
-#         self._websocket = None
-
-#     async def connect(self):
-#         websocket.enableTrace(True)
-
-#         # self._websocket = await websockets.connect(str(self._host))
-#         self._websocket = websocket.create_connection(
-#             url=str(self._host),
-#             sslopt={"cert_reqs": ssl.CERT_NONE}
-#             # header=headers,
-#         )
-#         print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
-
-#     async def close(self):
-#         if self._websocket is not None:
-#             await self.send(None)
-#             await self._websocket.close()
-
-#     async def receive(self):
-#         try:
-#             data = await self._websocket.recv()
-#             while data is None or data == "" or "Endpoint request timed out" in data:
-#                 await asyncio.sleep(0.1)
-#                 data = await self._websocket.recv()
-#         except asyncio.IncompleteReadError:
-#             print("got no data")
-#             return
-#         ret = object_from_string(data)
-#         if ret is None:
-#             print("remote host says good bye!")
-
-#         return ret
-
-#     async def send(self, descr):
-#         print("sending data")
-#         if descr is not None:
-#             print(descr)
-#             data = object_to_string(descr)
-#             await self._websocket.send(data + "\n")
-
-
 class WebsocketSignaling:
     def __init__(self, host, port):
         self._host = host
         self._port = port
         self._websocket = None
-        print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
-        print(self._host)
-        print(self._port)
-        print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
 
     async def connect(self):
         # websocket.enableTrace(True)

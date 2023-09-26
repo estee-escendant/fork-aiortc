@@ -265,6 +265,10 @@ class WebsocketSignaling:
         self._host = host
         self._port = port
         self._websocket = None
+        print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
+        print(self._host)
+        print(self._port)
+        print("$$$$$$$$$$$$$$$ connected to signaling server via websocket")
 
     async def connect(self):
         # websocket.enableTrace(True)

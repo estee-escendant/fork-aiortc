@@ -32,7 +32,7 @@ def object_from_string(message_str):
 
 
 def object_to_string(obj):
-    print("message sent xxx:" + obj.sdp)
+    print("message sent xxx:" + obj.type)
     if isinstance(obj, RTCSessionDescription):
         payload = {
             "sdp": obj.sdp,

@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def object_from_string(message_str):
     message = json.loads(message_str)
+    print("message xxx:" + message_str)
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
     print("encrypted_message_received:" + json.dumps(encrypted_message, sort_keys=True))

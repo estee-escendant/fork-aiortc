@@ -251,7 +251,7 @@ def getRTCPeerConfiguration():
             # send answers to any of the viewers on this signaling channel. If VIEWER is specified, this API
             # returns an endpoint that a client can use only to send offers to another MASTER client on this
             # signaling channel.
-            "Role": "VIEWER",
+            "Role": "MASTER",
         },
     )
     # reduce ResourceEndpointList to a dictionary with the key being the Protocol and the value being the ResourceEndpoint
@@ -308,32 +308,40 @@ async def run(pc, player, recorder, signaling, role):
     await signaling.connect()
     print("Connected to signaling server")
 
-    # based on
-    # https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
-    # // keep track of some negotiation state to prevent races and errors
-    makingOffer = False
-    ignoreOffer = False
-    isSettingRemoteAnswerPending = False
-    # The polite peer uses rollback to avoid collision with an incoming offer.
-    # The impolite peer ignores an incoming offer when this would collide with its own.
-    polite = True
+    # # based on
+    # # https://w3c.github.io/webrtc-pc/#perfect-negotiation-example
+    # # // keep track of some negotiation state to prevent races and errors
+    # makingOffer = False
+    # ignoreOffer = False
+    # isSettingRemoteAnswerPending = False
+    # # The polite peer uses rollback to avoid collision with an incoming offer.
+    # # The impolite peer ignores an incoming offer when this would collide with its own.
+    # polite = True
 
     if role == "offer":
         # send offer
         add_tracks()
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
-        await signaling.send(offer)
+        # await signaling.send(offer)
 
     # consume signaling
-    while True:
-        obj = await signaling.receive()
-        print("Received %s" % obj.type)
-        print("ConnectionState %s" % pc.connectionState)
-        print("SignalingState %s" % pc.signalingState)
-        print("IceConnectionState %s" % pc.iceConnectionState)
-        print("IceGatheringState %s" % pc.iceGatheringState)
+    # while True:
+    #     print("icegatheringstate: %s" % pc.iceGatheringState)
+    #     if pc.iceGatheringState == "complete":
+    #         break
 
+    # offer2 = pc.localDescription
+    # await signaling.send(offer2)
+
+    obj = await signaling.receive()
+    print("Received %s" % obj.type)
+    print("ConnectionState %s" % pc.connectionState)
+    print("SignalingState %s" % pc.signalingState)
+    print("IceConnectionState %s" % pc.iceConnectionState)
+    print("IceGatheringState %s" % pc.iceGatheringState)
+
+    while True:
         if pc.connectionState == "failed":
             print("Connection failed")
             break
@@ -341,58 +349,72 @@ async def run(pc, player, recorder, signaling, role):
             # // An offer may come in while we are busy processing SRD(answer).
             # // In this case, we will be in "stable" by the time the offer is processed
             # // so it is safe to chain it on our Operations Chain now.
-            readyForOffer = not makingOffer and (
-                pc.signalingState == "stable" or isSettingRemoteAnswerPending
-            )
-            offerCollision = obj.type == "offer" and not readyForOffer
+            # readyForOffer = not makingOffer and (
+            #     pc.signalingState == "stable" or isSettingRemoteAnswerPending
+            # )
+            # offerCollision = obj.type == "offer" and not readyForOffer
 
-            ignoreOffer = not polite and offerCollision
-            if ignoreOffer:
-                continue
+            # ignoreOffer = not polite and offerCollision
+            # if ignoreOffer:
+            #     continue
 
-            isSettingRemoteAnswerPending = obj.type == "answer"
+            # isSettingRemoteAnswerPending = obj.type == "answer"
 
-            print("**********************")
-            print("readyForOffer %s" % readyForOffer)
-            print("ignoreOffer %s" % ignoreOffer)
-            print("offerCollision %s" % offerCollision)
-            print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
-            print("**********************")
+            # print("**********************")
+            # print("readyForOffer %s" % readyForOffer)
+            # print("ignoreOffer %s" % ignoreOffer)
+            # print("offerCollision %s" % offerCollision)
+            # print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
+            # print("**********************")
 
             print("Setting remote description")
             print(obj)
             await pc.setRemoteDescription(obj)
-            print("1")
+            print("Remote description set")
 
-            print("offer set")
             # SRD rolls back as needed
             await recorder.start()
-
             print("Recorder started")
 
-            isSettingRemoteAnswerPending = False
-            print("Remote description set")
-            if obj.type == "offer":
-                print("2")
-                print("**********************")
-                print("readyForOffer %s" % readyForOffer)
-                print("ignoreOffer %s" % ignoreOffer)
-                print("offerCollision %s" % offerCollision)
-                print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
-                print("**********************")
+            # isSettingRemoteAnswerPending = False
 
-                # send answer
-                print("Send answer")
-                add_tracks()
-                answer = await pc.createAnswer()
-                await pc.setLocalDescription(answer)
-                print("going to send answer")
-                await signaling.send(answer)
-                await asyncio.sleep(0)  # yield control to the event loop
+            # if obj.type == "offer":
+            # print("2")
+            # print("**********************")
+            # print("readyForOffer %s" % readyForOffer)
+            # print("ignoreOffer %s" % ignoreOffer)
+            # print("offerCollision %s" % offerCollision)
+            # print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
+            # print("**********************")
+
+            print("icegatheringstate1: %s" % pc.iceGatheringState)
+            # send answer
+            print("Send answer")
+            # add_tracks()
+            print("icegatheringstate2: %s" % pc.iceGatheringState)
+            answer = await pc.createAnswer()
+            print("icegatheringstate3: %s" % pc.iceGatheringState)
+            await pc.setLocalDescription(answer)
+            print("icegatheringstate4: %s" % pc.iceGatheringState)
+
+            # while True:
+            #     print("icegatheringstate5: %s" % pc.iceGatheringState)
+            #     if pc.iceGatheringState == "complete":
+            #         break
+            #     await asyncio.sleep(2)
+
+            print("going to send answer")
+            await signaling.send(answer)
+            # await asyncio.sleep(10)  # yield control to the event loop
 
         elif isinstance(obj, RTCIceCandidate):
             print("Adding ice candidate")
             await pc.addIceCandidate(obj)
+
+            print("ConnectionState %s" % pc.connectionState)
+            print("SignalingState %s" % pc.signalingState)
+            print("IceConnectionState %s" % pc.iceConnectionState)
+            print("IceGatheringState %s" % pc.iceGatheringState)
             # send the ice candidate back to the other party
             # await signaling.send(obj)
             # do we have enough candidates yet to start the stream?
@@ -402,6 +424,7 @@ async def run(pc, player, recorder, signaling, role):
             #     add_tracks()
             #     await pc.setLocalDescription(await pc.createOffer())
             #     await signaling.send(pc.localDescription)
+
         elif obj is BYE:
             print("Exiting")
             break

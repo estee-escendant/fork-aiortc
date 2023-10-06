@@ -346,6 +346,7 @@ async def run(pc, player, recorder, signaling, role):
             print("Connection failed")
             break
         elif isinstance(obj, RTCSessionDescription):
+            print("========= offer or answer: " + obj.type)
             # // An offer may come in while we are busy processing SRD(answer).
             # // In this case, we will be in "stable" by the time the offer is processed
             # // so it is safe to chain it on our Operations Chain now.
@@ -368,7 +369,7 @@ async def run(pc, player, recorder, signaling, role):
             # print("**********************")
 
             print("Setting remote description")
-            print(obj)
+            # print(obj)
             await pc.setRemoteDescription(obj)
             print("Remote description set")
 
@@ -387,47 +388,46 @@ async def run(pc, player, recorder, signaling, role):
             # print("isSettingRemoteAnswerPending %s" % isSettingRemoteAnswerPending)
             # print("**********************")
 
-            print("icegatheringstate1: %s" % pc.iceGatheringState)
+            # print("icegatheringstate1: %s" % pc.iceGatheringState)
             # send answer
             print("Send answer")
             # add_tracks()
-            print("icegatheringstate2: %s" % pc.iceGatheringState)
+            # print("icegatheringstate2: %s" % pc.iceGatheringState)
             answer = await pc.createAnswer()
-            print("icegatheringstate3: %s" % pc.iceGatheringState)
+            # print("icegatheringstate3: %s" % pc.iceGatheringState)
             await pc.setLocalDescription(answer)
-            print("icegatheringstate4: %s" % pc.iceGatheringState)
-
-            # while True:
-            #     print("icegatheringstate5: %s" % pc.iceGatheringState)
-            #     if pc.iceGatheringState == "complete":
-            #         break
-            #     await asyncio.sleep(2)
+            # print("icegatheringstate4: %s" % pc.iceGatheringState)
 
             print("going to send answer")
             await signaling.send(answer)
             # await asyncio.sleep(10)  # yield control to the event loop
+            break
 
         elif isinstance(obj, RTCIceCandidate):
-            print("Adding ice candidate")
+            print("========= Adding ice candidate")
             await pc.addIceCandidate(obj)
 
             print("ConnectionState %s" % pc.connectionState)
             print("SignalingState %s" % pc.signalingState)
             print("IceConnectionState %s" % pc.iceConnectionState)
             print("IceGatheringState %s" % pc.iceGatheringState)
-            # send the ice candidate back to the other party
-            # await signaling.send(obj)
+
             # do we have enough candidates yet to start the stream?
-            # if pc.iceGatheringState == "complete":
-            #     # send offer
-            #     makingOffer = True
-            #     add_tracks()
-            #     await pc.setLocalDescription(await pc.createOffer())
-            #     await signaling.send(pc.localDescription)
+            if pc.iceGatheringState != "complete":
+                # send the ice candidate back to the other party
+                await signaling.send(obj)
+                # send offer
+                # makingOffer = True
+                # add_tracks()
+                # await pc.setLocalDescription(await pc.createOffer())
+                # await signaling.send(pc.localDescription)
+            await asyncio.sleep(2)
 
         elif obj is BYE:
-            print("Exiting")
+            print("========= Exiting")
             break
+
+        await asyncio.sleep(2)
 
 
 if __name__ == "__main__":
@@ -440,7 +440,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
     # get the endpoints and configuration, update args.signaling_host
     endpoints, configuration = getRTCPeerConfiguration()

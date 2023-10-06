@@ -12,15 +12,14 @@ from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 logger = logging.getLogger(__name__)
 BYE = object()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def object_from_string(message_str):
     message = json.loads(message_str)
-    print("message xxx:" + message_str)
+    print("message received xxx:" + message_str)
     payload = base64.b64decode(message["messagePayload"])
     encrypted_message = json.loads(payload)
-    print("encrypted_message_received:" + json.dumps(encrypted_message, sort_keys=True))
     if "type" in encrypted_message and encrypted_message["type"] in ["answer", "offer"]:
         return RTCSessionDescription(**encrypted_message)
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
@@ -33,9 +32,7 @@ def object_from_string(message_str):
 
 
 def object_to_string(obj):
-    print(type(obj))
-    print("object: " + obj.type)
-    print("object sdp: " + obj.sdp)
+    print("message sent xxx:" + obj)
     if isinstance(obj, RTCSessionDescription):
         payload = {
             "sdp": obj.sdp,
@@ -62,7 +59,6 @@ def object_to_string(obj):
     else:
         assert obj is BYE or obj is None
         message = {"messageType": "BYE"}
-    print("message_sent:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)
 
 

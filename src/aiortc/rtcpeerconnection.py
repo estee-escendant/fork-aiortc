@@ -820,17 +820,12 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             sessionDescription.type,
             sessionDescription.sdp,
         )
-        print("A")
 
         # parse and validate description
         description = sdp.SessionDescription.parse(sessionDescription.sdp)
-        print("A1")
         description.type = sessionDescription.type
-        print("A2")
-        print(description)
         self.__validate_description(description, is_local=False)
 
-        print("B")
         # apply description
         iceCandidates: Dict[RTCIceTransport, sdp.MediaDescription] = {}
         trackEvents = []
@@ -934,7 +929,6 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         role="server" if media.dtls.role == "client" else "client"
                     )
 
-        print("C")
         # remove bundled transports
         bundle = next((x for x in description.group if x.semantic == "BUNDLE"), None)
         if bundle and bundle.items:
@@ -978,7 +972,6 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             self.__updateIceConnectionState()
             self.__updateConnectionState()
 
-        print("D")
         # add remote candidates
         coros = [
             add_remote_candidates(iceTransport, media)
@@ -986,7 +979,6 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         ]
         await asyncio.gather(*coros)
 
-        print("E")
         # FIXME: in aiortc 2.0.0 emit RTCTrackEvent directly
         for event in trackEvents:
             self.emit("track", event.track)
@@ -994,14 +986,12 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         # connect
         asyncio.ensure_future(self.__connect())
 
-        print("F")
         # update signaling state
         if description.type == "offer":
             self.__setSignalingState("have-remote-offer")
         elif description.type == "answer":
             self.__setSignalingState("stable")
 
-        print("G")
         # replace description
         if description.type == "answer":
             self.__currentRemoteDescription = description
@@ -1232,14 +1222,9 @@ class RTCPeerConnection(AsyncIOEventEmitter):
         self, description: sdp.SessionDescription, is_local: bool
     ) -> None:
         # check description is compatible with signaling state
-        print("01")
-        print(description.type)
         if is_local:
-            print("011")
             if description.type == "offer":
-                print("0111")
                 if self.signalingState not in ["stable", "have-local-offer"]:
-                    print("01111")
                     raise InvalidStateError(
                         "Cannot handle offer in signaling state "
                         f'"{self.signalingState}"'
@@ -1254,11 +1239,8 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         f'"{self.signalingState}"'
                     )
         else:
-            print("012")
             if description.type == "offer":
-                print("0121")
                 if self.signalingState not in ["stable", "have-remote-offer"]:
-                    print("01211")
                     raise InvalidStateError(
                         "Cannot handle offer in signaling state "
                         f'"{self.signalingState}"'
@@ -1273,7 +1255,6 @@ class RTCPeerConnection(AsyncIOEventEmitter):
                         f'"{self.signalingState}"'
                     )
 
-        print("02")
         for media in description.media:
             # check ICE credentials were provided
             if not media.ice.usernameFragment or not media.ice.password:
@@ -1294,7 +1275,6 @@ class RTCPeerConnection(AsyncIOEventEmitter):
             if media.kind in ["audio", "video"] and not media.rtcp_mux:
                 raise ValueError("RTCP mux is not enabled")
 
-        print("03")
         # check the number of media section matches
         if description.type in ["answer", "pranswer"]:
             offer = (

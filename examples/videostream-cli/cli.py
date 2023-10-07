@@ -334,7 +334,7 @@ async def run(pc, player, recorder, signaling, role):
     # offer2 = pc.localDescription
     # await signaling.send(offer2)
 
-    obj = await signaling.receive()
+    obj, senderClientId = await signaling.receive()
     print("Received %s" % obj.type)
     print("ConnectionState %s" % pc.connectionState)
     print("SignalingState %s" % pc.signalingState)
@@ -399,9 +399,8 @@ async def run(pc, player, recorder, signaling, role):
             # print("icegatheringstate4: %s" % pc.iceGatheringState)
 
             print("going to send answer")
-            await signaling.send(answer)
+            await signaling.send(answer, senderClientId)
             # await asyncio.sleep(10)  # yield control to the event loop
-            break
 
         elif isinstance(obj, RTCIceCandidate):
             print("========= Adding ice candidate")
@@ -413,15 +412,15 @@ async def run(pc, player, recorder, signaling, role):
             print("IceGatheringState %s" % pc.iceGatheringState)
 
             # do we have enough candidates yet to start the stream?
-            if pc.iceGatheringState != "complete":
-                # send the ice candidate back to the other party
-                await signaling.send(obj)
-                # send offer
-                # makingOffer = True
-                # add_tracks()
-                # await pc.setLocalDescription(await pc.createOffer())
-                # await signaling.send(pc.localDescription)
-            await asyncio.sleep(2)
+            # if pc.iceGatheringState == "complete":
+            #     # send the ice candidate back to the other party
+            #     await signaling.send(obj)
+            #     # send offer
+            #     # makingOffer = True
+            #     # add_tracks()
+            #     # await pc.setLocalDescription(await pc.createOffer())
+            #     # await signaling.send(pc.localDescription)
+            # await asyncio.sleep(2)
 
         elif obj is BYE:
             print("========= Exiting")

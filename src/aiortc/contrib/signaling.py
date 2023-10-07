@@ -19,24 +19,25 @@ def object_from_string(message_str):
     message = json.loads(message_str)
     print("message received xxx:" + message_str)
     payload = base64.b64decode(message["messagePayload"])
+    senderClientId = message["senderClientId"]
     encrypted_message = json.loads(payload)
     if "type" in encrypted_message and encrypted_message["type"] in ["answer", "offer"]:
-        return RTCSessionDescription(**encrypted_message)
+        return RTCSessionDescription(**encrypted_message), senderClientId
     elif message["messageType"] == "ICE_CANDIDATE" and encrypted_message["candidate"]:
         candidate = candidate_from_sdp(encrypted_message["candidate"].split(":", 1)[1])
         candidate.sdpMid = encrypted_message["sdpMid"]
         candidate.sdpMLineIndex = encrypted_message["sdpMLineIndex"]
-        return candidate
+        return candidate, senderClientId
     elif message["messageType"] == "BYE":
-        return BYE
+        return BYE, senderClientId
 
 
-def object_to_string(obj):
-    print("message sent xxx:" + obj.type)
+def object_to_string(obj, recipientClientId=None):
     if isinstance(obj, RTCSessionDescription):
         payload = {
             "sdp": obj.sdp,
             "type": obj.type,
+            "recipientClientId": recipientClientId,
         }
         message = {
             "messagePayload": base64.b64encode(
@@ -49,6 +50,7 @@ def object_to_string(obj):
             "candidate": "candidate:" + candidate_to_sdp(obj),
             "id": obj.sdpMid,
             "label": obj.sdpMLineIndex,
+            "recipientClientId": recipientClientId,
         }
         message = {
             "messagePayload": base64.b64encode(
@@ -59,6 +61,7 @@ def object_to_string(obj):
     else:
         assert obj is BYE or obj is None
         message = {"messageType": "BYE"}
+    print("message sent xxx:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)
 
 
@@ -237,17 +240,17 @@ class WebsocketSignaling:
         except asyncio.IncompleteReadError:
             print("got no data")
             return
-        ret = object_from_string(data)
+        ret, senderClientId = object_from_string(data)
         if ret == None:
             print("remote host says good bye!")
 
-        return ret
+        return ret, senderClientId
 
-    async def send(self, descr):
+    async def send(self, descr, recipientClientId):
         print("sending data")
         if descr is not None:
             print(descr)
-            data = object_to_string(descr)
+            data = object_to_string(descr, recipientClientId)
             await self._websocket.send(data + "\n")
 
 

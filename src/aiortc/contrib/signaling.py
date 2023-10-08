@@ -37,6 +37,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
         payload = {
             "sdp": obj.sdp,
             "type": obj.type,
+            "senderClientId": senderClientId,
         }
         message = {
             "messagePayload": base64.b64encode(
@@ -49,6 +50,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
         payload = {
             "sdp": obj.sdp,
             "type": obj.type,
+            "recipientClientId": recipientClientId,
         }
         message = {
             "messagePayload": base64.b64encode(

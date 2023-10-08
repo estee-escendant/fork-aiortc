@@ -440,7 +440,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
     # get the endpoints and configuration, update args.signaling_host
     endpoints, configuration = getRTCPeerConfiguration()

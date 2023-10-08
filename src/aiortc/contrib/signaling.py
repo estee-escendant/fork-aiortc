@@ -12,7 +12,7 @@ from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 logger = logging.getLogger(__name__)
 BYE = object()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def object_from_string(message_str):
@@ -32,8 +32,8 @@ def object_from_string(message_str):
         return BYE, senderClientId
 
 
-def object_to_string(obj, recipientClientId=None):
-    if isinstance(obj, RTCSessionDescription):
+def object_to_string(obj, senderClientId=None, recipientClientId=None):
+    if isinstance(obj, RTCSessionDescription) and obj.type == "offer":
         payload = {
             "sdp": obj.sdp,
             "type": obj.type,
@@ -42,7 +42,19 @@ def object_to_string(obj, recipientClientId=None):
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
-            "messageType": "SDP_OFFER" if obj.type == "offer" else "SDP_ANSWER",
+            "messageType": "SDP_OFFER",
+            "senderClientId": senderClientId,
+        }
+    elif isinstance(obj, RTCSessionDescription) and obj.type == "answer":
+        payload = {
+            "sdp": obj.sdp,
+            "type": obj.type,
+        }
+        message = {
+            "messagePayload": base64.b64encode(
+                json.dumps(payload).encode("utf8")
+            ).decode("utf8"),
+            "messageType": "SDP_ANSWER",
             "recipientClientId": recipientClientId,
         }
     elif isinstance(obj, RTCIceCandidate):
@@ -56,7 +68,6 @@ def object_to_string(obj, recipientClientId=None):
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
             "messageType": "ICE_CANDIDATE",
-            "recipientClientId": recipientClientId,
         }
     else:
         assert obj is BYE or obj is None

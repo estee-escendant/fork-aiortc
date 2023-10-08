@@ -257,11 +257,11 @@ class WebsocketSignaling:
 
         return ret, senderClientId
 
-    async def send(self, descr, recipientClientId=None):
+    async def send(self, descr, senderClientId=None, recipientClientId=None):
         print("sending data")
         if descr is not None:
             print(descr)
-            data = object_to_string(descr, recipientClientId)
+            data = object_to_string(descr, senderClientId, recipientClientId)
             await self._websocket.send(data + "\n")
 
 

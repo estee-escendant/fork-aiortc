@@ -323,7 +323,7 @@ async def run(pc, player, recorder, signaling, role):
         add_tracks()
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
-        # await signaling.send(offer)
+        await signaling.send(offer)
 
     # consume signaling
     # while True:
@@ -334,14 +334,14 @@ async def run(pc, player, recorder, signaling, role):
     # offer2 = pc.localDescription
     # await signaling.send(offer2)
 
-    obj, senderClientId = await signaling.receive()
-    print("Received %s" % obj.type)
-    print("ConnectionState %s" % pc.connectionState)
-    print("SignalingState %s" % pc.signalingState)
-    print("IceConnectionState %s" % pc.iceConnectionState)
-    print("IceGatheringState %s" % pc.iceGatheringState)
-
     while True:
+        obj, senderClientId = await signaling.receive()
+        print("Received %s" % obj.type)
+        print("ConnectionState %s" % pc.connectionState)
+        print("SignalingState %s" % pc.signalingState)
+        print("IceConnectionState %s" % pc.iceConnectionState)
+        print("IceGatheringState %s" % pc.iceGatheringState)
+
         if pc.connectionState == "failed":
             print("Connection failed")
             break
@@ -389,44 +389,45 @@ async def run(pc, player, recorder, signaling, role):
             # print("**********************")
 
             # print("icegatheringstate1: %s" % pc.iceGatheringState)
-            # send answer
-            print("Send answer")
-            # add_tracks()
-            # print("icegatheringstate2: %s" % pc.iceGatheringState)
-            answer = await pc.createAnswer()
-            # print("icegatheringstate3: %s" % pc.iceGatheringState)
-            await pc.setLocalDescription(answer)
-            # print("icegatheringstate4: %s" % pc.iceGatheringState)
+            if obj.type == "offer":
+                # send answer
+                print("Send answer")
+                add_tracks()
+                # print("icegatheringstate2: %s" % pc.iceGatheringState)
+                answer = await pc.createAnswer()
+                # print("icegatheringstate3: %s" % pc.iceGatheringState)
+                await pc.setLocalDescription(answer)
+                # print("icegatheringstate4: %s" % pc.iceGatheringState)
 
-            print("going to send answer")
-            await signaling.send(answer, senderClientId)
-            # await asyncio.sleep(10)  # yield control to the event loop
+                print("going to send answer")
+                await signaling.send(answer, senderClientId)
+                # await asyncio.sleep(10)  # yield control to the event loop
 
         elif isinstance(obj, RTCIceCandidate):
             print("========= Adding ice candidate")
             await pc.addIceCandidate(obj)
 
             print("ConnectionState %s" % pc.connectionState)
-            print("SignalingState %s" % pc.signalingState)
-            print("IceConnectionState %s" % pc.iceConnectionState)
-            print("IceGatheringState %s" % pc.iceGatheringState)
+            # print("SignalingState %s" % pc.signalingState)
+            # print("IceConnectionState %s" % pc.iceConnectionState)
+            # print("IceGatheringState %s" % pc.iceGatheringState)
 
-            # do we have enough candidates yet to start the stream?
+            # # do we have enough candidates yet to start the stream?
             # if pc.iceGatheringState == "complete":
             #     # send the ice candidate back to the other party
-            #     await signaling.send(obj)
+            #     # await signaling.send(obj)
             #     # send offer
             #     # makingOffer = True
-            #     # add_tracks()
-            #     # await pc.setLocalDescription(await pc.createOffer())
-            #     # await signaling.send(pc.localDescription)
+            #     add_tracks()
+            #     await pc.setLocalDescription(await pc.createOffer())
+            #     await signaling.send(pc.localDescription, senderClientId)
             # await asyncio.sleep(2)
 
         elif obj is BYE:
             print("========= Exiting")
             break
 
-        await asyncio.sleep(2)
+        # await asyncio.sleep(2)
 
 
 if __name__ == "__main__":

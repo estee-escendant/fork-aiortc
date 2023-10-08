@@ -37,26 +37,26 @@ def object_to_string(obj, recipientClientId=None):
         payload = {
             "sdp": obj.sdp,
             "type": obj.type,
-            "recipientClientId": recipientClientId,
         }
         message = {
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
             "messageType": "SDP_OFFER" if obj.type == "offer" else "SDP_ANSWER",
+            "recipientClientId": recipientClientId,
         }
     elif isinstance(obj, RTCIceCandidate):
         payload = {
             "candidate": "candidate:" + candidate_to_sdp(obj),
             "id": obj.sdpMid,
             "label": obj.sdpMLineIndex,
-            "recipientClientId": recipientClientId,
         }
         message = {
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
             "messageType": "ICE_CANDIDATE",
+            "recipientClientId": recipientClientId,
         }
     else:
         assert obj is BYE or obj is None
@@ -246,7 +246,7 @@ class WebsocketSignaling:
 
         return ret, senderClientId
 
-    async def send(self, descr, recipientClientId):
+    async def send(self, descr, recipientClientId=None):
         print("sending data")
         if descr is not None:
             print(descr)

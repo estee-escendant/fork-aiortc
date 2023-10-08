@@ -67,11 +67,11 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
-            "messageType": "ICE_CANDIDATE",
+            "action": "ICE_CANDIDATE",
         }
     else:
         assert obj is BYE or obj is None
-        message = {"messageType": "BYE"}
+        message = {"action": "BYE"}
     print("message sent xxx:" + json.dumps(message, sort_keys=True))
     return json.dumps(message, sort_keys=True)
 

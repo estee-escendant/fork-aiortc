@@ -68,6 +68,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
             "action": "ICE_CANDIDATE",
+            "recipientClientId": recipientClientId,
         }
     else:
         assert obj is BYE or obj is None

@@ -335,13 +335,13 @@ async def run(pc, player, recorder, signaling, role):
     # await signaling.send(offer2)
 
     while True:
-        await asyncio.sleep(2)
+        # await asyncio.sleep(2)
         obj, senderClientId = await signaling.receive()
-        print("Received %s" % obj.type)
-        print("ConnectionState %s" % pc.connectionState)
-        print("SignalingState %s" % pc.signalingState)
-        print("IceConnectionState %s" % pc.iceConnectionState)
-        print("IceGatheringState %s" % pc.iceGatheringState)
+        # print("Received %s" % obj.type)
+        # print("ConnectionState %s" % pc.connectionState)
+        # print("SignalingState %s" % pc.signalingState)
+        # print("IceConnectionState %s" % pc.iceConnectionState)
+        # print("IceGatheringState %s" % pc.iceGatheringState)
 
         if pc.connectionState == "failed":
             print("Connection failed")
@@ -390,7 +390,8 @@ async def run(pc, player, recorder, signaling, role):
             # print("**********************")
 
             # print("icegatheringstate1: %s" % pc.iceGatheringState)
-            if obj.type == "offer":
+            if obj.type == "offer" and pc.iceGatheringState == "complete":
+                print("========= Sending answer")
                 # send answer
                 print("Send answer")
                 add_tracks()

@@ -42,7 +42,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
-            "messageType": "SDP_OFFER",
+            "action": "SDP_OFFER",
             "recipientClientId": recipientClientId,
         }
     elif isinstance(obj, RTCSessionDescription) and obj.type == "answer":
@@ -54,7 +54,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             "messagePayload": base64.b64encode(
                 json.dumps(payload).encode("utf8")
             ).decode("utf8"),
-            "messageType": "SDP_ANSWER",
+            "action": "SDP_ANSWER",
             "recipientClientId": recipientClientId,
         }
     elif isinstance(obj, RTCIceCandidate):

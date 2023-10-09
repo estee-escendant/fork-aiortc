@@ -287,7 +287,7 @@ def getRTCPeerConfiguration():
     return endpoints, RTCConfiguration(iceServerList)
 
 
-async def run(pc, player, recorder, signaling, role):
+async def run(pc, player, recorder, signaling, role, remoteClientId=None):
     def add_tracks():
         if player and player.audio:
             pc.addTrack(player.audio)
@@ -318,6 +318,8 @@ async def run(pc, player, recorder, signaling, role):
     # # The impolite peer ignores an incoming offer when this would collide with its own.
     # polite = True
 
+    # if we want to send an offer from the start we would need to know who to send it to...
+    # this is AWS KVS specific logic
     if role == "offer":
         # send offer
         add_tracks()
@@ -435,6 +437,7 @@ async def run(pc, player, recorder, signaling, role):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Video stream from the command line")
     parser.add_argument("role", choices=["offer", "answer"])
+    parser.add_argument("--remoteClientId", help="Remote client ID to connect to."),
     parser.add_argument("--play-from", help="Read the media from a file and sent it."),
     parser.add_argument("--record-to", help="Write received media to a file."),
     parser.add_argument("--verbose", "-v", action="count")
@@ -491,6 +494,7 @@ if __name__ == "__main__":
                 recorder=recorder,
                 signaling=signaling,
                 role=args.role,
+                remoteClientId=args.remoteClientId,
             )
         )
     except KeyboardInterrupt:

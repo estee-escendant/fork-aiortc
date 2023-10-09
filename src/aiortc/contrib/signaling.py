@@ -44,6 +44,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             ).decode("utf8"),
             "action": "SDP_OFFER",
             "recipientClientId": recipientClientId,
+            "senderClientId": senderClientId,
         }
     elif isinstance(obj, RTCSessionDescription) and obj.type == "answer":
         payload = {
@@ -56,6 +57,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             ).decode("utf8"),
             "action": "SDP_ANSWER",
             "recipientClientId": recipientClientId,
+            "senderClientId": senderClientId,
         }
     elif isinstance(obj, RTCIceCandidate):
         payload = {
@@ -69,6 +71,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
             ).decode("utf8"),
             "action": "ICE_CANDIDATE",
             "recipientClientId": recipientClientId,
+            "senderClientId": senderClientId,
         }
     else:
         assert obj is BYE or obj is None

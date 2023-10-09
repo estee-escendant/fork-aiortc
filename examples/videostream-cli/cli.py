@@ -323,7 +323,7 @@ async def run(pc, player, recorder, signaling, role):
         add_tracks()
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
-        await signaling.send(offer, senderClientId="1234")
+        await signaling.send(offer)
 
     # consume signaling
     # while True:
@@ -336,7 +336,7 @@ async def run(pc, player, recorder, signaling, role):
 
     while True:
         # await asyncio.sleep(2)
-        obj, senderClientId = await signaling.receive()
+        obj, remoteClientId = await signaling.receive()
         # print("Received %s" % obj.type)
         # print("ConnectionState %s" % pc.connectionState)
         # print("SignalingState %s" % pc.signalingState)
@@ -390,7 +390,7 @@ async def run(pc, player, recorder, signaling, role):
             # print("**********************")
 
             # print("icegatheringstate1: %s" % pc.iceGatheringState)
-            if obj.type == "offer" and pc.iceGatheringState == "complete":
+            if obj.type == "offer":
                 print("========= Sending answer")
                 # send answer
                 print("Send answer")
@@ -402,7 +402,7 @@ async def run(pc, player, recorder, signaling, role):
                 # print("icegatheringstate4: %s" % pc.iceGatheringState)
 
                 print("going to send answer")
-                await signaling.send(answer, recipientClientId=senderClientId)
+                await signaling.send(answer, recipientClientId=remoteClientId)
                 # await asyncio.sleep(10)  # yield control to the event loop
 
         elif isinstance(obj, RTCIceCandidate):

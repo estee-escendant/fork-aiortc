@@ -59,9 +59,9 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
         }
     elif isinstance(obj, RTCIceCandidate):
         payload = {
-            "candidate": "candidate:" + candidate_to_sdp(obj),
-            "id": obj.sdpMid,
-            "label": obj.sdpMLineIndex,
+            "candidate": candidate_to_sdp(obj),
+            "sdpMid": obj.sdpMid,
+            "sdpMLineIndex": obj.sdpMLineIndex,
         }
         message = {
             "messagePayload": base64.b64encode(

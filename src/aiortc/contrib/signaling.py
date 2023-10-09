@@ -77,7 +77,7 @@ def object_to_string(obj, senderClientId=None, recipientClientId=None):
         assert obj is BYE or obj is None
         message = {"action": "BYE"}
     print("message sent xxx:" + json.dumps(message, sort_keys=True))
-    return json.dumps(message, sort_keys=True)
+    return json.dumps(message.dict(exclude_none=True), sort_keys=True)
 
 
 class CopyAndPasteSignaling:

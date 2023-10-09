@@ -325,16 +325,7 @@ async def run(pc, player, recorder, signaling, role, remoteClientId=None):
         add_tracks()
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
-        await signaling.send(offer)
-
-    # consume signaling
-    # while True:
-    #     print("icegatheringstate: %s" % pc.iceGatheringState)
-    #     if pc.iceGatheringState == "complete":
-    #         break
-
-    # offer2 = pc.localDescription
-    # await signaling.send(offer2)
+        await signaling.send(offer, senderClientId="test")
 
     while True:
         # await asyncio.sleep(2)
